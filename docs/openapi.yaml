@@ -1,0 +1,717 @@
+openapi: 3.1.0
+info:
+  title: Space Case Cruises API
+  version: 0.2.0
+  description: |
+    Admin-first community platform API for Space Case Cruises.
+    Auth in local/dev uses one of these headers:
+    - x-user-email
+    - x-user-id
+servers:
+  - url: http://localhost:4000
+security:
+  - UserEmailAuth: []
+  - UserIdAuth: []
+
+components:
+  securitySchemes:
+    UserEmailAuth:
+      type: apiKey
+      in: header
+      name: x-user-email
+    UserIdAuth:
+      type: apiKey
+      in: header
+      name: x-user-id
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CruiseIdParam:
+      name: cruiseId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  issue:
+                    type: string
+    Role:
+      type: string
+      enum: [user, admin]
+    Pronouns:
+      type: string
+      enum: [they_them, he_him, she_her, any_all]
+      nullable: true
+    PreferredContact:
+      type: string
+      enum: [discord, text, phone, email]
+      nullable: true
+    CruiseStatus:
+      type: string
+      enum: [active, archived]
+    VisibilityState:
+      type: string
+      enum: [invisible, inactive, active]
+    CommitmentStatus:
+      type: string
+      enum: [committed, withdrawn, completed]
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /api/v1/auth/session:
+    get:
+      tags: [Auth]
+      summary: Return current authenticated session user
+      responses:
+        '200':
+          description: Session user
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/auth/mode:
+    get:
+      tags: [Auth]
+      summary: Return active auth mode
+      security: []
+      responses:
+        '200':
+          description: Auth mode
+
+  /api/v1/cadre:
+    get:
+      tags: [Cadre]
+      summary: List Cadre roster
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [playa_name, cadet_extension, preferred_contact, created_at]
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [asc, desc]
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: page_size
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        '200':
+          description: Roster results
+
+  /api/v1/cadets/{id}:
+    get:
+      tags: [Cadets]
+      summary: Get public cadet profile
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Cadet profile
+        '404':
+          description: Not found
+
+  /api/v1/profile:
+    get:
+      tags: [Profile]
+      summary: Get self profile
+      responses:
+        '200':
+          description: Current user profile
+    patch:
+      tags: [Profile]
+      summary: Update self profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                avatar_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                phone_number:
+                  type: string
+                  nullable: true
+                preferred_contact:
+                  $ref: '#/components/schemas/PreferredContact'
+                pronouns:
+                  $ref: '#/components/schemas/Pronouns'
+                playa_name:
+                  type: string
+      responses:
+        '200':
+          description: Updated profile
+
+  /api/v1/admin/cadets/{id}:
+    patch:
+      tags: [Admin Cadre]
+      summary: Admin update cadet role/extension/disabled
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                cadet_extension:
+                  type: string
+                role:
+                  $ref: '#/components/schemas/Role'
+                is_disabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Updated cadet
+        '403':
+          description: Forbidden
+
+  /api/v1/cruises:
+    get:
+      tags: [Cruises]
+      summary: List cruises
+      parameters:
+        - in: query
+          name: include_archived
+          schema:
+            type: string
+            enum: ["true", "false"]
+      responses:
+        '200':
+          description: Cruises list
+
+  /api/v1/admin/cruises:
+    post:
+      tags: [Cruises]
+      summary: Create cruise (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [name, year]
+              properties:
+                name:
+                  type: string
+                year:
+                  type: integer
+                  minimum: 2000
+                location:
+                  type: string
+                  nullable: true
+                starts_on:
+                  type: string
+                  format: date
+                  nullable: true
+                ends_on:
+                  type: string
+                  format: date
+                  nullable: true
+                map_image_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                is_featured:
+                  type: boolean
+                sort_order:
+                  type: integer
+                force_all_subgroups_to_dock:
+                  type: boolean
+      responses:
+        '201':
+          description: Created cruise
+
+  /api/v1/admin/cruises/{id}:
+    patch:
+      tags: [Cruises]
+      summary: Update cruise (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                year:
+                  type: integer
+                  minimum: 2000
+                location:
+                  type: string
+                  nullable: true
+                starts_on:
+                  type: string
+                  format: date
+                  nullable: true
+                ends_on:
+                  type: string
+                  format: date
+                  nullable: true
+                map_image_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                status:
+                  $ref: '#/components/schemas/CruiseStatus'
+                is_featured:
+                  type: boolean
+                sort_order:
+                  type: integer
+                force_all_subgroups_to_dock:
+                  type: boolean
+      responses:
+        '200':
+          description: Updated cruise
+
+  /api/v1/subgroups:
+    get:
+      tags: [SubGroups]
+      summary: List subgroup library
+      responses:
+        '200':
+          description: Subgroup list
+
+  /api/v1/admin/subgroups:
+    post:
+      tags: [SubGroups]
+      summary: Create subgroup template (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [name, slug, code, default_cost_level]
+              properties:
+                name:
+                  type: string
+                slug:
+                  type: string
+                code:
+                  type: string
+                default_description:
+                  type: string
+                  nullable: true
+                default_tile_image_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                extension:
+                  type: string
+                  nullable: true
+                default_cost_level:
+                  type: integer
+                  minimum: 0
+                  maximum: 8
+      responses:
+        '201':
+          description: Created subgroup
+
+  /api/v1/admin/subgroups/{id}:
+    patch:
+      tags: [SubGroups]
+      summary: Update subgroup template (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                slug:
+                  type: string
+                code:
+                  type: string
+                default_description:
+                  type: string
+                  nullable: true
+                default_tile_image_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                extension:
+                  type: string
+                  nullable: true
+                default_cost_level:
+                  type: integer
+                  minimum: 0
+                  maximum: 8
+      responses:
+        '200':
+          description: Updated subgroup
+
+  /api/v1/cruises/{cruiseId}/subgroups:
+    get:
+      tags: [Cruise SubGroups]
+      summary: List cruise subgroup assignments
+      parameters:
+        - $ref: '#/components/parameters/CruiseIdParam'
+      responses:
+        '200':
+          description: Assignment list
+
+  /api/v1/admin/cruises/{cruiseId}/subgroups:
+    post:
+      tags: [Cruise SubGroups]
+      summary: Create cruise subgroup assignment (admin)
+      parameters:
+        - $ref: '#/components/parameters/CruiseIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [subgroup_id]
+              properties:
+                subgroup_id:
+                  type: string
+                  format: uuid
+                override_name:
+                  type: string
+                  nullable: true
+                override_description:
+                  type: string
+                  nullable: true
+                detail_image_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                cost_level_override:
+                  type: integer
+                  minimum: 0
+                  maximum: 8
+                  nullable: true
+                visibility_state:
+                  $ref: '#/components/schemas/VisibilityState'
+                dock_visible:
+                  type: boolean
+                map_x:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                  nullable: true
+                map_y:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                  nullable: true
+                map_scale:
+                  type: number
+                  exclusiveMinimum: 0
+                  nullable: true
+      responses:
+        '201':
+          description: Created assignment
+
+  /api/v1/admin/cruise-subgroups/{id}:
+    patch:
+      tags: [Cruise SubGroups]
+      summary: Update cruise subgroup assignment (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                override_name:
+                  type: string
+                  nullable: true
+                override_description:
+                  type: string
+                  nullable: true
+                detail_image_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                cost_level_override:
+                  type: integer
+                  minimum: 0
+                  maximum: 8
+                  nullable: true
+                visibility_state:
+                  $ref: '#/components/schemas/VisibilityState'
+                dock_visible:
+                  type: boolean
+                map_x:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                  nullable: true
+                map_y:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                  nullable: true
+                map_scale:
+                  type: number
+                  exclusiveMinimum: 0
+                  nullable: true
+      responses:
+        '200':
+          description: Updated assignment
+
+  /api/v1/cruise-subgroups/{id}:
+    get:
+      tags: [Commitments]
+      summary: Get subgroup detail + commitment count
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - in: query
+          name: include_committed_cadets
+          schema:
+            type: string
+            enum: ["true", "false"]
+      responses:
+        '200':
+          description: Subgroup detail
+
+  /api/v1/commitments/toggle:
+    post:
+      tags: [Commitments]
+      summary: Transition commitment lifecycle for current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [cruise_subgroup_id, action]
+              properties:
+                cruise_subgroup_id:
+                  type: string
+                  format: uuid
+                action:
+                  type: string
+                  enum: [commit, withdraw, recommit]
+      responses:
+        '200':
+          description: Updated commitment
+        '409':
+          description: Invalid transition or completed commitment
+
+  /api/v1/admin/cruises/{cruiseId}/map/batch:
+    patch:
+      tags: [Cruise Map]
+      summary: Batch update map placement/visibility (admin)
+      parameters:
+        - $ref: '#/components/parameters/CruiseIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [cruise_subgroup_id]
+                    properties:
+                      cruise_subgroup_id:
+                        type: string
+                        format: uuid
+                      visibility_state:
+                        $ref: '#/components/schemas/VisibilityState'
+                      dock_visible:
+                        type: boolean
+                      map_x:
+                        type: number
+                        minimum: 0
+                        maximum: 100
+                        nullable: true
+                      map_y:
+                        type: number
+                        minimum: 0
+                        maximum: 100
+                        nullable: true
+                      map_scale:
+                        type: number
+                        exclusiveMinimum: 0
+      responses:
+        '200':
+          description: Batch update result
+
+  /api/v1/badges:
+    get:
+      tags: [Badges]
+      summary: List badges
+      responses:
+        '200':
+          description: Badge list
+
+  /api/v1/admin/badges:
+    post:
+      tags: [Badges]
+      summary: Create badge (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                icon_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                cruise_id:
+                  type: string
+                  format: uuid
+                  nullable: true
+      responses:
+        '201':
+          description: Created badge
+
+  /api/v1/admin/badges/{id}:
+    patch:
+      tags: [Badges]
+      summary: Update badge (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                icon_url:
+                  type: string
+                  format: uri
+                  nullable: true
+                cruise_id:
+                  type: string
+                  format: uuid
+                  nullable: true
+      responses:
+        '200':
+          description: Updated badge
+
+  /api/v1/admin/badge-assignments:
+    post:
+      tags: [Badges]
+      summary: Assign badge to cadet (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [user_id, badge_id]
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+                badge_id:
+                  type: string
+                  format: uuid
+                reason:
+                  type: string
+                  nullable: true
+    get:
+      tags: [Badges]
+      summary: List badge assignments (admin)
+      responses:
+        '200':
+          description: Assignment list
+
+  /api/v1/admin/badge-assignments/{id}/revoke:
+    patch:
+      tags: [Badges]
+      summary: Revoke badge assignment (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Revoked assignment

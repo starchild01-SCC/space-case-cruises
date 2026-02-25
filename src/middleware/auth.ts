@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { resolveSupabaseIdentity } from "../auth/supabase.js";
+import { resolveFirebaseIdentity } from "../auth/firebase.js";
 import { findOrCreateUserByEmail, findUserByEmail, findUserById } from "../data/repository.js";
 import type { Role, User } from "../types/domain.js";
 import { HttpError } from "./errors.js";
@@ -57,9 +58,27 @@ const getUserFromSupabaseToken = async (request: Request): Promise<User | undefi
   });
 };
 
+const getUserFromFirebaseToken = async (request: Request): Promise<User | undefined> => {
+  const token = getBearerToken(request);
+  if (!token) {
+    return undefined;
+  }
+
+  const identity = await resolveFirebaseIdentity(token);
+  if (!identity) {
+    throw new HttpError(401, "UNAUTHENTICATED", "Invalid Firebase token");
+  }
+
+  return findOrCreateUserByEmail(identity.email, {
+    playaName: identity.playaName,
+  });
+};
+
 export const requireAuth = async (request: Request, _response: Response, next: NextFunction): Promise<void> => {
-  const supabaseUser = await getUserFromSupabaseToken(request);
-  const user = supabaseUser ?? (await getUserFromHeaders(request));
+  // Try Firebase first, then Supabase, then headers
+  const firebaseUser = await getUserFromFirebaseToken(request);
+  const supabaseUser = !firebaseUser ? await getUserFromSupabaseToken(request) : undefined;
+  const user = firebaseUser ?? supabaseUser ?? (await getUserFromHeaders(request));
 
   if (!user || user.isDisabled) {
     throw new HttpError(401, "UNAUTHENTICATED", "Authentication required");

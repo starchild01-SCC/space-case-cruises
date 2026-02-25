@@ -1,4 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  signInWithEmail,
+  signUpWithEmail,
+  signInWithGoogle,
+  signOutUser,
+  onAuthChange,
+  getIdToken,
+} from "./firebase";
 
 type Identity = "admin" | "cadet";
 
@@ -662,6 +670,7 @@ function App() {
   const [authActionMessage, setAuthActionMessage] = useState<string | null>(null);
   const [showRegistrationBox, setShowRegistrationBox] = useState<boolean>(false);
   const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
+  const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
 
   const [editingCruises, setEditingCruises] = useState<Record<string, EditableCruise>>({});
   const [savingCruiseId, setSavingCruiseId] = useState<string | null>(null);
@@ -723,18 +732,24 @@ function App() {
     error: null,
   });
 
-  const authHeaders = useMemo(
-    () => ({
+  const authHeaders = useMemo(() => {
+    // If Firebase is configured and user is signed in, use Bearer token
+    if (state.authMode === "firebase" && firebaseToken) {
+      return {
+        "Authorization": `Bearer ${firebaseToken}`,
+      } as Record<string, string>;
+    }
+    // Fallback to header simulation
+    return {
       "x-user-email": IDENTITY_EMAIL[identity],
-    }),
-    [identity],
-  );
+    } as Record<string, string>;
+  }, [identity, state.authMode, firebaseToken]);
 
   const jsonHeaders = useMemo(
     () => ({
       ...authHeaders,
       "content-type": "application/json",
-    }),
+    } as Record<string, string>),
     [authHeaders],
   );
 
@@ -967,6 +982,22 @@ function App() {
   useEffect(() => {
     void load();
   }, [identity, authHeaders]);
+
+  // Firebase auth state listener
+  useEffect(() => {
+    const unsubscribe = onAuthChange(async (user) => {
+      if (user) {
+        const token = await getIdToken(user);
+        setFirebaseToken(token);
+        setIsSignedIn(true);
+      } else {
+        setFirebaseToken(null);
+        setIsSignedIn(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const refreshProfileCommitments = async (userId: string): Promise<void> => {
     setLoadingProfileCommitments(true);
@@ -2099,27 +2130,68 @@ function App() {
     setAuthActionMessage(null);
   };
 
-  const handleAuthAction = (mode: "signin" | "signup"): void => {
+  const handleAuthAction = async (mode: "signin" | "signup"): Promise<void> => {
     if (!authEmail.trim() || !authPassword.trim()) {
       setAuthActionMessage("Enter email and password.");
       return;
     }
 
-    if (state.authMode === "header-sim") {
-      setAuthActionMessage("Header-sim mode active: this is local sign-in simulation.");
-    } else {
-      setAuthActionMessage(mode === "signin" ? "Sign-in flow started." : "Sign-up flow started.");
-    }
+    try {
+      setAuthActionMessage("Processing...");
+      
+      let user;
+      if (mode === "signin") {
+        user = await signInWithEmail(authEmail, authPassword);
+      } else {
+        user = await signUpWithEmail(authEmail, authPassword);
+      }
 
-    setIsSignedIn(true);
-    setShowRegistrationBox(false);
+      const token = await getIdToken(user);
+      setFirebaseToken(token);
+      setIsSignedIn(true);
+      setShowRegistrationBox(false);
+      setAuthActionMessage(null);
+      
+      // Reload data with new auth
+      void load();
+    } catch (error) {
+      const errorMessage = (error as Error).message || "Authentication failed";
+      setAuthActionMessage(errorMessage);
+      console.error("Auth error:", error);
+    }
   };
 
-  const handleSignOut = (): void => {
-    setIsSignedIn(false);
-    setShowRegistrationBox(false);
-    setAuthPassword("");
-    setAuthActionMessage("Signed out.");
+  const handleGoogleSignIn = async (): Promise<void> => {
+    try {
+      setAuthActionMessage("Opening Google sign-in...");
+      const user = await signInWithGoogle();
+      const token = await getIdToken(user);
+      setFirebaseToken(token);
+      setIsSignedIn(true);
+      setShowRegistrationBox(false);
+      setAuthActionMessage(null);
+      
+      // Reload data with new auth
+      void load();
+    } catch (error) {
+      const errorMessage = (error as Error).message || "Google sign-in failed";
+      setAuthActionMessage(errorMessage);
+      console.error("Google sign-in error:", error);
+    }
+  };
+
+  const handleSignOut = async (): Promise<void> => {
+    try {
+      await signOutUser();
+      setFirebaseToken(null);
+      setIsSignedIn(false);
+      setShowRegistrationBox(false);
+      setAuthPassword("");
+      setAuthActionMessage("Signed out.");
+    } catch (error) {
+      console.error("Sign out error:", error);
+      setAuthActionMessage("Sign out failed");
+    }
   };
 
   const goToLanding = (): void => {
@@ -2130,6 +2202,15 @@ function App() {
   return (
     <main className="app-shell">
       <header className="topbar">
+        {/* Matrix-style ticker - scrolling with mechanical character flips */}
+        <div className="alien-ticker">
+          <div className="ticker-content">
+            <span>⊥<span className="flip-section">ヲ⇂ㄣ</span>又 ⇂ア ᄅ⇂ン フ • <span className="flip-section">△⊥シ</span>⊥㈜ㄒⅰ⊥ • ヲ刀ㄣ又 ᄅ⇂ア<span className="flip-section">刀ㄣ</span> • ⊥ヲ⇂ㄣ又 ⇂ア</span>
+            <span>⊥<span className="flip-section">ヲ⇂ㄣ</span>又 ⇂ア ᄅ⇂ン フ • <span className="flip-section">△⊥シ</span>⊥㈜ㄒⅰ⊥ • ヲ刀ㄣ又 ᄅ⇂ア<span className="flip-section">刀ㄣ</span> • ⊥ヲ⇂ㄣ又 ⇂ア</span>
+            <span>⊥<span className="flip-section">ヲ⇂ㄣ</span>又 ⇂ア ᄅ⇂ン フ • <span className="flip-section">△⊥シ</span>⊥㈜ㄒⅰ⊥ • ヲ刀ㄣ又 ᄅ⇂ア<span className="flip-section">刀ㄣ</span> • ⊥ヲ⇂ㄣ又 ⇂ア</span>
+          </div>
+        </div>
+
         <div className="toolbar">
           {!isSignedIn ? (
             <button onClick={openRegistrationBox}>SIGN IN / SIGN UP</button>
@@ -2195,7 +2276,7 @@ function App() {
           <div className="profile-actions">
             <button onClick={() => handleAuthAction("signin")}>Sign In</button>
             <button onClick={() => handleAuthAction("signup")}>Sign Up</button>
-            <button disabled={state.authMode === "header-sim"}>Continue with Google</button>
+            <button onClick={handleGoogleSignIn} disabled={state.authMode === "header-sim"}>Continue with Google</button>
             <button onClick={() => setShowRegistrationBox(false)}>Close</button>
           </div>
           {state.authMode === "header-sim" ? (
@@ -3477,7 +3558,7 @@ function App() {
 
         {generatedPage.kind === "home" ? (
           <>
-            <div className="generated-grid">
+            <div className="generated-grid special-cruises-grid">
               {activeCruises.map((cruise) => (
                 <article key={`home-${cruise.id}`} className="generated-card">
                   <h3 className="generated-card-title">{cruise.name}</h3>

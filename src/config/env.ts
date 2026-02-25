@@ -16,4 +16,7 @@ export const env = {
   supabaseUrl: process.env.SUPABASE_URL?.trim() || null,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY?.trim() || null,
   useSupabaseAuth: process.env.USE_SUPABASE_AUTH === "true",
+  // Firebase config
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID?.trim() || null,
+  firebaseServiceAccount: process.env.FIREBASE_SERVICE_ACCOUNT?.trim() || null,
 };

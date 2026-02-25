@@ -1,12 +1,15 @@
 import { Router } from "express";
-import { getAuthMode } from "../auth/supabase.js";
+import { getAuthMode as getSupabaseAuthMode } from "../auth/supabase.js";
+import { getAuthMode as getFirebaseAuthMode } from "../auth/firebase.js";
 import { requireAuth } from "../middleware/auth.js";
 
 export const authRouter = Router();
 
 authRouter.get("/mode", (_request, response) => {
+  // Prioritize Firebase, then Supabase, then header-sim
+  const mode = getFirebaseAuthMode();
   response.json({
-    mode: getAuthMode(),
+    mode,
   });
 });
 

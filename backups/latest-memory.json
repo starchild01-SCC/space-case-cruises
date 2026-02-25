@@ -1,7 +1,7 @@
 {
   "mode": "memory",
-  "reason": "createCruiseSubgroup:memory",
-  "timestamp": "2026-02-24T05:37:29.967Z",
+  "reason": "admin:manual",
+  "timestamp": "2026-02-25T02:28:57.984Z",
   "snapshot": {
     "users": [
       {
@@ -22,15 +22,29 @@
         "id": "6272b2b1-488c-4f54-802b-856da471280b",
         "email": "cadet@spacecase.local",
         "playaName": "Vaga Lume",
-        "phoneNumber": "+15550000002",
+        "phoneNumber": "6127198671",
         "preferredContact": "discord",
         "pronouns": "any_all",
         "avatarUrl": "http://localhost:4000/uploads/cadets/avatars/vaga-lume--avatar--6272b2b1-488c-4f54-802b---1771904645861.webp",
         "cadetExtension": "101",
-        "role": "admin",
+        "role": "user",
         "isDisabled": false,
         "createdAt": "2026-02-23T23:58:06.529Z",
-        "updatedAt": "2026-02-24T03:44:08.573Z"
+        "updatedAt": "2026-02-25T02:20:23.035Z"
+      },
+      {
+        "id": "8a78b3c4-a41c-4367-a69b-c032a15ab362",
+        "email": "starchild01@gmail.com",
+        "playaName": "Vaga Lume",
+        "phoneNumber": "6127198671",
+        "preferredContact": "discord",
+        "pronouns": "any_all",
+        "avatarUrl": "http://localhost:4000/uploads/cadets/avatars/vaga-lume--avatar--8a78b3c4-a41c-4367-a69b---1771985127079.webp",
+        "cadetExtension": null,
+        "role": "admin",
+        "isDisabled": false,
+        "createdAt": "2026-02-24T23:33:12.789Z",
+        "updatedAt": "2026-02-25T02:05:50.007Z"
       }
     ],
     "cruises": [
@@ -57,7 +71,7 @@
         "location": "Cabin",
         "startsOn": "2026-07-10",
         "endsOn": "2026-07-14",
-        "mapImageUrl": "http://localhost:4000/uploads/cruises/maps/that-thing-at-the-cabin--map--1771891891128.jpg",
+        "mapImageUrl": "http://localhost:4000/uploads/cruises/maps/that-thing-at-the-cabin--map--b25e7896-17a2-40dd-91dc---1771984665136.png",
         "specialPageImageUrl": "http://localhost:4000/uploads/cruises/special/that-thing-at-the-cabin--special--1771891897067.jpg",
         "status": "active",
         "isFeatured": true,
@@ -66,7 +80,7 @@
         "createdBy": "42494ec8-74d5-4388-bc87-ecf46aa14227",
         "id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
         "createdAt": "2026-02-24T00:11:42.273Z",
-        "updatedAt": "2026-02-24T00:11:45.509Z"
+        "updatedAt": "2026-02-25T01:57:48.993Z"
       },
       {
         "name": "Hearts O' Phyre",
@@ -93,11 +107,11 @@
         "slug": "comms",
         "code": "COMMS",
         "defaultDescription": "Fire Conclave",
-        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/comms--tile--81164308-d1f2-4611-852d---1771897455361.png",
+        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/soot-cinder--tile--81164308-d1f2-4611-852d---1771983451964.jpg",
         "extension": "800",
         "defaultCostLevel": 3,
         "createdAt": "2026-02-23T23:58:06.529Z",
-        "updatedAt": "2026-02-24T05:33:03.354Z"
+        "updatedAt": "2026-02-25T01:39:33.570Z"
       },
       {
         "id": "b3d60d72-b996-4f0e-bde6-8e25adda25ef",
@@ -105,95 +119,119 @@
         "slug": "build",
         "code": "BUILD",
         "defaultDescription": "Communication Center",
-        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/build--tile--b3d60d72-b996-4f0e-bde6---1771892472483.png",
+        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/star-cinq--tile--b3d60d72-b996-4f0e-bde6---1771983464381.jpg",
         "extension": "801",
         "defaultCostLevel": 2,
         "createdAt": "2026-02-23T23:58:06.529Z",
-        "updatedAt": "2026-02-24T03:22:49.399Z"
+        "updatedAt": "2026-02-25T01:39:31.140Z"
       },
       {
-        "name": "Steeping Charm",
+        "name": "Steeping Char Cafem",
         "slug": "steeping-charm",
         "code": "STEEPING_CHARM",
         "defaultDescription": "Cafe",
-        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/steeping-charm--tile--1771892597159.png",
+        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/steeping-char-cafem--tile--87b23d3b-dbd7-4ac5-bc25---1771983475544.jpg",
         "extension": null,
         "defaultCostLevel": 0,
         "id": "87b23d3b-dbd7-4ac5-bc25-d76244d22311",
         "createdAt": "2026-02-24T00:24:13.395Z",
-        "updatedAt": "2026-02-24T02:59:51.443Z"
+        "updatedAt": "2026-02-25T01:39:28.990Z"
       },
       {
-        "name": "Sleep Cloud Caravansari",
+        "name": "Sleep Cloud Caravansarai",
         "slug": "sleep-cloud-caravansari",
         "code": "SLEEP_CLOUD_CARAVANSARI",
         "defaultDescription": "Caravansari for Pets and Travellers",
-        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/sleep-cloud-caravansari--tile--1771895814611.png",
+        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/sleep-cloud-caravansarai--tile--7502cc11-39f4-4221-8895---1771983505455.jpg",
         "extension": null,
         "defaultCostLevel": 0,
         "id": "7502cc11-39f4-4221-8895-f4ce15b2faca",
         "createdAt": "2026-02-24T01:17:32.563Z",
-        "updatedAt": "2026-02-24T05:31:00.038Z"
+        "updatedAt": "2026-02-25T01:39:25.707Z"
       },
       {
         "name": "Star Cinq",
         "slug": "star-cinq",
         "code": "STAR_CINQ",
         "defaultDescription": "Communications",
-        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/star-cinq--tile--1771898148206.png",
+        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/star-cinq--tile--01f6dd71-9894-422b-b536---1771983519231.jpg",
         "extension": null,
         "defaultCostLevel": 0,
         "id": "01f6dd71-9894-422b-b536-65f5eb536af1",
         "createdAt": "2026-02-24T01:56:01.239Z",
-        "updatedAt": "2026-02-24T05:30:40.308Z"
+        "updatedAt": "2026-02-25T01:39:23.420Z"
       },
       {
         "name": "Sassy Cyber Circus",
         "slug": "sassy-cyber-circus",
         "code": "SASSY_CYBER_CIRCUS",
         "defaultDescription": "Circus",
-        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/sassy-cyber-circus--tile--1771901920839.png",
+        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/sassy-cyber-circus--tile--95e077ad-4e88-46a4-8b5b---1771983535281.jpg",
         "extension": null,
         "defaultCostLevel": 0,
         "id": "95e077ad-4e88-46a4-8b5b-cb9909adf156",
         "createdAt": "2026-02-24T02:58:58.848Z",
-        "updatedAt": "2026-02-24T02:58:58.848Z"
+        "updatedAt": "2026-02-25T01:53:09.407Z"
       },
       {
         "name": "Ticket Booth",
         "slug": "ticket-booth",
         "code": "TICKET_BOOTH",
         "defaultDescription": "Sale & Connection",
-        "defaultTileImageUrl": null,
+        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/ticket-booth--tile--4d53c457-6be1-4b19-aaee---1771983546701.jpg",
         "extension": null,
         "defaultCostLevel": 0,
         "id": "4d53c457-6be1-4b19-aaee-bf9742c007c3",
         "createdAt": "2026-02-24T04:52:45.564Z",
-        "updatedAt": "2026-02-24T05:32:49.522Z"
+        "updatedAt": "2026-02-25T01:54:26.375Z"
       },
       {
         "name": "Super Charge Crystal",
         "slug": "super-charge-crystal",
         "code": "SUPER_CHARGE_CRYSTAL",
         "defaultDescription": "Unhinged Power",
-        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/super-charge-crystal--tile--1771911253835.png",
+        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/super-charge-crystal--tile--4e9d5541-2650-4a6f-be26---1771981543489.png",
         "extension": null,
         "defaultCostLevel": 0,
         "id": "4e9d5541-2650-4a6f-be26-a7a7e78064c2",
         "createdAt": "2026-02-24T05:34:24.556Z",
-        "updatedAt": "2026-02-24T05:34:24.556Z"
+        "updatedAt": "2026-02-25T01:53:59.586Z"
       },
       {
         "name": "Safety Care Center",
         "slug": "safety-care-center",
         "code": "SAFETY_CARE_CENTER",
         "defaultDescription": "Burner Care",
-        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/safety-care-center--tile--1771911364036.png",
+        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/safety-care-center--tile--59d46d2c-2f8d-40d2-8f91---1771983582507.jpg",
         "extension": null,
         "defaultCostLevel": 0,
         "id": "59d46d2c-2f8d-40d2-8f91-9540c3188a1a",
         "createdAt": "2026-02-24T05:37:29.919Z",
-        "updatedAt": "2026-02-24T05:37:29.919Z"
+        "updatedAt": "2026-02-25T01:54:02.756Z"
+      },
+      {
+        "name": "Still-Life Capture & Conserve",
+        "slug": "still-life-capture-conserve",
+        "code": "STILLLIFE_CAPTURE_CONSERVE",
+        "defaultDescription": null,
+        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/still-life-capture-conserve--tile--1771983591293.jpg",
+        "extension": null,
+        "defaultCostLevel": 0,
+        "id": "626678cc-d044-4301-8612-646e01930eca",
+        "createdAt": "2026-02-25T01:52:21.828Z",
+        "updatedAt": "2026-02-25T01:54:06.637Z"
+      },
+      {
+        "name": "Soot & Cinder",
+        "slug": "soot-cinder",
+        "code": "SOOT_CINDER",
+        "defaultDescription": "Fire Conclave",
+        "defaultTileImageUrl": "http://localhost:4000/uploads/subgroups/tiles/soot-cinder--tile--1771984545631.jpg",
+        "extension": null,
+        "defaultCostLevel": 0,
+        "id": "94626446-8364-4ace-b393-4073131bdfc8",
+        "createdAt": "2026-02-25T01:56:14.358Z",
+        "updatedAt": "2026-02-25T01:56:14.358Z"
       }
     ],
     "cruiseSubgroups": [
@@ -211,7 +249,7 @@
         "mapY": 41.26,
         "mapScale": 1,
         "createdAt": "2026-02-23T23:58:06.529Z",
-        "updatedAt": "2026-02-24T05:33:03.415Z"
+        "updatedAt": "2026-02-25T01:39:33.634Z"
       },
       {
         "cruiseId": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
@@ -220,30 +258,30 @@
         "overrideDescription": null,
         "detailImageUrl": "http://localhost:4000/uploads/subgroups/posters/build-that-thing-at-the-cabin--poster--b3d60d72-b996-4f0e-bde6---1771892481237.jpg",
         "costLevelOverride": null,
-        "visibilityState": "active",
-        "dockVisible": false,
-        "mapX": 50.94,
-        "mapY": 43.24,
+        "visibilityState": "inactive",
+        "dockVisible": true,
+        "mapX": 72.61,
+        "mapY": 35.92,
         "mapScale": 1,
         "id": "ce1bb3c8-b702-4331-8041-e840348eb801",
         "createdAt": "2026-02-24T00:21:28.219Z",
-        "updatedAt": "2026-02-24T04:42:29.003Z"
+        "updatedAt": "2026-02-25T01:39:31.201Z"
       },
       {
         "cruiseId": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
         "subgroupId": "87b23d3b-dbd7-4ac5-bc25-d76244d22311",
         "overrideName": "Steeping Charm",
         "overrideDescription": "Cafe",
-        "detailImageUrl": "http://localhost:4000/uploads/subgroups/posters/steeping-charm--poster--1771892647443.png",
+        "detailImageUrl": "http://localhost:4000/uploads/subgroups/posters/steeping-charm-that-thing-at-the-cabin--poster--87b23d3b-dbd7-4ac5-bc25---1771912219913.jpg",
         "costLevelOverride": null,
         "visibilityState": "inactive",
         "dockVisible": true,
-        "mapX": null,
-        "mapY": null,
+        "mapX": 35.47,
+        "mapY": 56.45,
         "mapScale": 1,
         "id": "912e5cc8-fc40-4dc5-87ad-dd166eb0ce7b",
         "createdAt": "2026-02-24T00:24:13.427Z",
-        "updatedAt": "2026-02-24T04:42:29.003Z"
+        "updatedAt": "2026-02-25T01:39:29.058Z"
       },
       {
         "cruiseId": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
@@ -259,7 +297,7 @@
         "mapScale": 1,
         "id": "7695c0fd-777f-4eae-b9aa-27497fac383a",
         "createdAt": "2026-02-24T01:17:32.594Z",
-        "updatedAt": "2026-02-24T05:31:00.103Z"
+        "updatedAt": "2026-02-25T01:39:25.769Z"
       },
       {
         "cruiseId": "12573979-29c2-4136-b2eb-0f4d65290130",
@@ -275,7 +313,7 @@
         "mapScale": 1,
         "id": "aa4c0b95-312f-4e6b-ae9f-da6edfe14b40",
         "createdAt": "2026-02-24T01:56:01.284Z",
-        "updatedAt": "2026-02-24T05:30:40.367Z"
+        "updatedAt": "2026-02-25T01:39:23.484Z"
       },
       {
         "cruiseId": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
@@ -291,7 +329,7 @@
         "mapScale": 1,
         "id": "20a0a586-9f1f-4d3e-83cf-a45e66447424",
         "createdAt": "2026-02-24T02:58:58.903Z",
-        "updatedAt": "2026-02-24T04:42:29.003Z"
+        "updatedAt": "2026-02-25T01:53:09.471Z"
       },
       {
         "cruiseId": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
@@ -307,7 +345,7 @@
         "mapScale": 1,
         "id": "43ac00d9-7a25-40fc-ba52-c72bc4d3adf9",
         "createdAt": "2026-02-24T04:52:45.613Z",
-        "updatedAt": "2026-02-24T05:32:49.585Z"
+        "updatedAt": "2026-02-25T01:54:26.442Z"
       },
       {
         "cruiseId": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
@@ -323,7 +361,7 @@
         "mapScale": 1,
         "id": "0c30f2c4-500a-4eb9-9c3a-53db63345579",
         "createdAt": "2026-02-24T05:34:24.619Z",
-        "updatedAt": "2026-02-24T05:34:24.619Z"
+        "updatedAt": "2026-02-25T01:53:59.651Z"
       },
       {
         "cruiseId": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
@@ -339,7 +377,39 @@
         "mapScale": 1,
         "id": "42b11a0a-884e-47e9-a4b8-7a6b31147af0",
         "createdAt": "2026-02-24T05:37:29.966Z",
-        "updatedAt": "2026-02-24T05:37:29.966Z"
+        "updatedAt": "2026-02-25T01:54:02.831Z"
+      },
+      {
+        "cruiseId": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroupId": "626678cc-d044-4301-8612-646e01930eca",
+        "overrideName": "Still-Life Capture & Conserve",
+        "overrideDescription": null,
+        "detailImageUrl": "http://localhost:4000/uploads/subgroups/posters/still-life-capture-conserve--poster--1771984336266.png",
+        "costLevelOverride": null,
+        "visibilityState": "inactive",
+        "dockVisible": true,
+        "mapX": null,
+        "mapY": null,
+        "mapScale": 1,
+        "id": "de356663-a8bb-41ab-b169-bb0db564f2b0",
+        "createdAt": "2026-02-25T01:52:21.895Z",
+        "updatedAt": "2026-02-25T01:54:06.701Z"
+      },
+      {
+        "cruiseId": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroupId": "94626446-8364-4ace-b393-4073131bdfc8",
+        "overrideName": "Soot & Cinder",
+        "overrideDescription": "Fire Conclave",
+        "detailImageUrl": "http://localhost:4000/uploads/subgroups/posters/soot-cinder--poster--1771984564013.jpg",
+        "costLevelOverride": null,
+        "visibilityState": "inactive",
+        "dockVisible": true,
+        "mapX": null,
+        "mapY": null,
+        "mapScale": 1,
+        "id": "e42df121-778b-4d6b-b368-fb3ee5c813ee",
+        "createdAt": "2026-02-25T01:56:14.425Z",
+        "updatedAt": "2026-02-25T01:56:14.425Z"
       }
     ],
     "badges": [
@@ -376,11 +446,11 @@
         "subgroupId": "81164308-d1f2-4611-852d-5066293c5b4c",
         "subgroupName": "Comms",
         "subgroupExtension": "800",
-        "status": "committed",
+        "status": "withdrawn",
         "committedAt": "2026-02-23T23:58:06.529Z",
-        "withdrawnAt": null,
+        "withdrawnAt": "2026-02-24T05:44:32.020Z",
         "completedAt": null,
-        "updatedAt": "2026-02-23T23:58:06.529Z"
+        "updatedAt": "2026-02-24T05:44:32.020Z"
       },
       {
         "id": "ffcf32e5-a623-4289-b26a-94f031aadee1",
@@ -461,6 +531,38 @@
         "withdrawnAt": "2026-02-24T03:50:54.051Z",
         "completedAt": null,
         "updatedAt": "2026-02-24T03:50:54.051Z"
+      },
+      {
+        "id": "6a0f164b-0350-4176-85ae-f5c23d48f3ea",
+        "userId": "6272b2b1-488c-4f54-802b-856da471280b",
+        "cruiseSubgroupId": "0c30f2c4-500a-4eb9-9c3a-53db63345579",
+        "cruiseId": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "cruiseName": "That Thing At The Cabin",
+        "cruiseYear": 2026,
+        "subgroupId": "4e9d5541-2650-4a6f-be26-a7a7e78064c2",
+        "subgroupName": "Super Charge Crystal",
+        "subgroupExtension": null,
+        "status": "committed",
+        "committedAt": "2026-02-24T06:01:44.550Z",
+        "withdrawnAt": null,
+        "completedAt": null,
+        "updatedAt": "2026-02-24T06:01:44.550Z"
+      },
+      {
+        "id": "0699765f-47a5-4a66-a4a4-2409f74f7f90",
+        "userId": "8a78b3c4-a41c-4367-a69b-c032a15ab362",
+        "cruiseSubgroupId": "de356663-a8bb-41ab-b169-bb0db564f2b0",
+        "cruiseId": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "cruiseName": "That Thing At The Cabin",
+        "cruiseYear": 2026,
+        "subgroupId": "626678cc-d044-4301-8612-646e01930eca",
+        "subgroupName": "Still-Life Capture & Conserve",
+        "subgroupExtension": null,
+        "status": "committed",
+        "committedAt": "2026-02-25T02:05:00.241Z",
+        "withdrawnAt": null,
+        "completedAt": null,
+        "updatedAt": "2026-02-25T02:05:00.241Z"
       }
     ]
   }

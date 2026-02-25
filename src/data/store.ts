@@ -15,6 +15,7 @@ const nowIso = () => new Date().toISOString();
 
 const adminId = randomUUID();
 const cadetId = randomUUID();
+const starchildId = randomUUID();
 const cruiseId = randomUUID();
 const subgroupCommsId = randomUUID();
 const subgroupBuildId = randomUUID();
@@ -46,6 +47,20 @@ export const users: User[] = [
     avatarUrl: null,
     cadetExtension: "101",
     role: "user",
+    isDisabled: false,
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+  },
+  {
+    id: starchildId,
+    email: "starchild01@gmail.com",
+    playaName: "Starchild",
+    phoneNumber: null,
+    preferredContact: null,
+    pronouns: null,
+    avatarUrl: null,
+    cadetExtension: null,
+    role: "admin",
     isDisabled: false,
     createdAt: nowIso(),
     updatedAt: nowIso(),

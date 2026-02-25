@@ -52,6 +52,19 @@ Phase 0 + Phase 2 backend starter generated from project specification and API c
 This starter uses headers to simulate auth:
 - `x-user-id: <uuid>` or `x-user-email: <email>`
 
+## Firebase Auth (recommended)
+Enable real authentication with Firebase:
+- Set up a Firebase project at https://console.firebase.google.com/
+- Configure environment variables (see `FIREBASE_SETUP.md` for detailed instructions)
+- Backend: `FIREBASE_PROJECT_ID` and `FIREBASE_SERVICE_ACCOUNT`
+- Frontend: `VITE_FIREBASE_*` variables in `ui/.env`
+
+**Quick setup:**
+1. Create Firebase project and enable Email/Password + Google auth
+2. Download service account JSON from Project Settings
+3. Copy web app config to `ui/.env`
+4. See [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for complete instructions
+
 ## Supabase Auth (optional)
 Enable real bearer-token auth by setting:
 - `USE_SUPABASE_AUTH=true`
@@ -59,8 +72,8 @@ Enable real bearer-token auth by setting:
 - `SUPABASE_ANON_KEY=<your-anon-key>`
 
 Behavior:
-- If `Authorization: Bearer <token>` is present, API validates token with Supabase.
-- Valid Supabase users are auto-provisioned in `users` table by email (role defaults to `user`).
+- If `Authorization: Bearer <token>` is present, API validates token with Supabase or Firebase.
+- Valid users are auto-provisioned in `users` table by email (role defaults to `user`).
 - Header simulation (`x-user-id` / `x-user-email`) still works for local testing.
 
 Seed users:

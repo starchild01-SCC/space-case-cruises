@@ -11,3 +11,4 @@ backups/snapshots/
 .npm-cache/
 ui/dist/
 ui/node_modules/
+firebase-service-account.json

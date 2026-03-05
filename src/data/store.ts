@@ -126,6 +126,8 @@ export const cruises: Cruise[] = [
     endsOn: "2026-09-01",
     mapImageUrl: null,
     specialPageImageUrl: null,
+    castingCost: null,
+    castingCostUrl: null,
     status: "active",
     isFeatured: true,
     sortOrder: 1,
@@ -209,6 +211,42 @@ export const updateUser = (userId: string, updater: (existing: User) => User): U
   const updated = updater(existing);
   users[index] = { ...updated, updatedAt: nowIso() };
   return users[index];
+};
+
+export const deleteUser = (userId: string): boolean => {
+  const index = users.findIndex((user) => user.id === userId);
+  if (index === -1) {
+    return false;
+  }
+
+  const [removed] = users.splice(index, 1);
+
+  if (!removed) {
+    return false;
+  }
+
+  // Clean up any in-memory commitments and badge assignments for this user.
+  commitmentsByUser.delete(userId);
+
+  for (let i = badgeAssignments.length - 1; i >= 0; i -= 1) {
+    if (badgeAssignments[i]?.userId === userId) {
+      badgeAssignments.splice(i, 1);
+    }
+  }
+
+  // Also remove as creator from cruises/badges if needed (non-destructive to records).
+  for (const cruise of cruises) {
+    if (cruise.createdBy === removed.id) {
+      cruise.createdBy = null;
+    }
+  }
+  for (const badge of badges) {
+    if (badge.createdBy === removed.id) {
+      badge.createdBy = null;
+    }
+  }
+
+  return true;
 };
 
 export const listBadges = (): Badge[] => badges;

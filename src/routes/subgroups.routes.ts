@@ -5,7 +5,6 @@ import {
   findSubgroupById,
   listSubgroups,
   subgroupCodeExists,
-  subgroupExtensionExists,
   subgroupSlugExists,
   updateSubgroup,
 } from "../data/repository.js";
@@ -13,6 +12,8 @@ import { requireAuth, requireRole } from "../middleware/auth.js";
 import { HttpError } from "../middleware/errors.js";
 import type { Subgroup } from "../types/domain.js";
 import { findClosestUploadFileUrl } from "./uploads.routes.js";
+import { normalizeMediaUrl } from "./media-url.js";
+import type { Request } from "express";
 
 const subgroupCreateSchema = z
   .object({
@@ -27,12 +28,12 @@ const subgroupCreateSchema = z
       .trim()
       .toUpperCase()
       .regex(/^[A-Z0-9_]+$/),
-    default_description: z.string().trim().nullable().optional(),
-    default_tile_image_url: z.string().url().nullable().optional(),
-    extension: z.string().trim().min(1).max(20).nullable().optional(),
+    default_description: z.string().trim().optional().nullable(),
+    default_tile_image_url: z.string().optional().nullable(),
+    extension: z.string().trim().min(1).max(20).optional().nullable(),
     default_cost_level: z.number().int().min(0).max(8),
   })
-  .strict();
+  .passthrough();
 
 const subgroupPatchSchema = z
   .object({
@@ -49,23 +50,25 @@ const subgroupPatchSchema = z
       .toUpperCase()
       .regex(/^[A-Z0-9_]+$/)
       .optional(),
-    default_description: z.string().trim().nullable().optional(),
-    default_tile_image_url: z.string().url().nullable().optional(),
-    extension: z.string().trim().min(1).max(20).nullable().optional(),
+    default_description: z.string().trim().optional().nullable(),
+    default_tile_image_url: z.string().optional().nullable(),
+    extension: z.string().trim().min(1).max(20).optional().nullable(),
     default_cost_level: z.number().int().min(0).max(8).optional(),
   })
-  .strict();
+  .passthrough();
 
 const idParamSchema = z.object({ id: z.string().uuid() });
 
-const serializeSubgroup = (subgroup: Subgroup) => ({
+const serializeSubgroup = (request: Request, subgroup: Subgroup) => ({
   id: subgroup.id,
   name: subgroup.name,
   slug: subgroup.slug,
   code: subgroup.code,
   default_description: subgroup.defaultDescription,
-  default_tile_image_url:
+  default_tile_image_url: normalizeMediaUrl(
+    request,
     subgroup.defaultTileImageUrl ?? findClosestUploadFileUrl("subgroup-tile", subgroup.name),
+  ),
   extension: subgroup.extension,
   default_cost_level: subgroup.defaultCostLevel,
   created_at: subgroup.createdAt,
@@ -74,11 +77,13 @@ const serializeSubgroup = (subgroup: Subgroup) => ({
 
 export const subgroupsRouter = Router();
 
-subgroupsRouter.get("/subgroups", requireAuth, async (_request, response) => {
-  response.json({ items: (await listSubgroups()).map(serializeSubgroup) });
+// Public browse endpoint (unregistered users can view subgroups).
+subgroupsRouter.get("/subgroups", async (request, response) => {
+  response.json({ items: (await listSubgroups()).map((subgroup) => serializeSubgroup(request, subgroup)) });
 });
 
 subgroupsRouter.post("/admin/subgroups", requireAuth, requireRole(["admin"]), async (request, response) => {
+  console.log("[DEBUG] POST /admin/subgroups - Request body:", JSON.stringify(request.body, null, 2));
   const payload = subgroupCreateSchema.parse(request.body);
 
   if (await subgroupSlugExists(payload.slug)) {
@@ -93,12 +98,6 @@ subgroupsRouter.post("/admin/subgroups", requireAuth, requireRole(["admin"]), as
     ]);
   }
 
-  if (payload.extension && (await subgroupExtensionExists(payload.extension))) {
-    throw new HttpError(409, "CONFLICT", "Subgroup extension already exists", [
-      { field: "extension", issue: "must be unique among subgroups" },
-    ]);
-  }
-
   const created = await createSubgroup({
     name: payload.name,
     slug: payload.slug,
@@ -109,7 +108,7 @@ subgroupsRouter.post("/admin/subgroups", requireAuth, requireRole(["admin"]), as
     defaultCostLevel: payload.default_cost_level,
   });
 
-  response.status(201).json(serializeSubgroup(created));
+  response.status(201).json(serializeSubgroup(request, created));
 });
 
 subgroupsRouter.patch(
@@ -118,6 +117,7 @@ subgroupsRouter.patch(
   requireRole(["admin"]),
   async (request, response) => {
     const { id } = idParamSchema.parse(request.params);
+    console.log("[DEBUG] PATCH /admin/subgroups/:id - Request body:", JSON.stringify(request.body, null, 2));
     const payload = subgroupPatchSchema.parse(request.body);
 
     const existing = await findSubgroupById(id);
@@ -137,12 +137,6 @@ subgroupsRouter.patch(
       ]);
     }
 
-    if (payload.extension && (await subgroupExtensionExists(payload.extension, id))) {
-      throw new HttpError(409, "CONFLICT", "Subgroup extension already exists", [
-        { field: "extension", issue: "must be unique among subgroups" },
-      ]);
-    }
-
     const updated = await updateSubgroup(id, (current) => ({
       ...current,
       name: payload.name ?? current.name,
@@ -158,6 +152,6 @@ subgroupsRouter.patch(
       defaultCostLevel: payload.default_cost_level ?? current.defaultCostLevel,
     }));
 
-    response.json(serializeSubgroup(updated!));
+    response.json(serializeSubgroup(request, updated!));
   },
 );

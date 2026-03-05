@@ -1,13 +1,18 @@
 import request from "supertest";
+import type { Express } from "express";
 import { beforeAll, describe, expect, it } from "vitest";
-import { app } from "./app.js";
 import { isDatabaseEnabled, pool } from "./data/db.js";
 import { seedDatabase } from "./scripts/seed-lib.js";
+
+let app: Express;
 
 const describePostgres = isDatabaseEnabled ? describe : describe.skip;
 
 describePostgres("Space Case Cruises API postgres", () => {
   beforeAll(async () => {
+    process.env.ALLOW_HEADER_AUTH = "true";
+    ({ app } = await import("./app.js"));
+
     if (!pool) {
       return;
     }

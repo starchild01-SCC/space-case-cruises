@@ -40,6 +40,8 @@ const mapCruise = (row: QueryResultRow): Cruise => ({
   endsOn: row.ends_on ? String(row.ends_on) : null,
   mapImageUrl: row.map_image_url ? String(row.map_image_url) : null,
   specialPageImageUrl: row.special_page_image_url ? String(row.special_page_image_url) : null,
+  castingCost: row.casting_cost !== null && row.casting_cost !== undefined ? Number(row.casting_cost) : null,
+  castingCostUrl: row.casting_cost_url ? String(row.casting_cost_url) : null,
   status: row.status,
   isFeatured: Boolean(row.is_featured),
   sortOrder: Number(row.sort_order),
@@ -167,14 +169,19 @@ export const findUserByEmail = async (email: string): Promise<User | undefined> 
 
 export const findOrCreateUserByEmail = async (
   email: string,
-  options?: { playaName?: string },
+  options?: { playaName?: string; role?: User["role"] },
 ): Promise<User> => {
   const existing = await findUserByEmail(email);
   if (existing) {
+    if (options?.role && existing.role !== options.role) {
+      const updated = await updateUser(existing.id, (current) => ({ ...current, role: options.role! }));
+      return updated ?? existing;
+    }
     return existing;
   }
 
   const derivedPlayaName = options?.playaName?.trim() || email.split("@")[0] || "Cadet";
+  const derivedRole = options?.role ?? "user";
 
   if (!isDatabaseEnabled || !pool) {
     const created: User = {
@@ -186,7 +193,7 @@ export const findOrCreateUserByEmail = async (
       pronouns: null,
       avatarUrl: null,
       cadetExtension: null,
-      role: "user",
+      role: derivedRole,
       isDisabled: false,
       createdAt: nowIso(),
       updatedAt: nowIso(),
@@ -199,11 +206,11 @@ export const findOrCreateUserByEmail = async (
 
   const result = await pool.query(
     `insert into users (email, playa_name, role, is_disabled)
-     values ($1, $2, 'user', false)
+     values ($1, $2, $3, false)
      on conflict (email)
-     do update set updated_at = now()
+     do update set playa_name = excluded.playa_name, role = excluded.role, updated_at = now()
      returning *`,
-    [email, derivedPlayaName],
+    [email, derivedPlayaName, derivedRole],
   );
 
   const created = mapUser(result.rows[0]);
@@ -269,6 +276,40 @@ export const updateUser = async (
     void writeBackupSnapshot("updateUser:postgres");
   }
   return updatedUser;
+};
+
+export const deleteUser = async (userId: string): Promise<boolean> => {
+  if (!isDatabaseEnabled || !pool) {
+    const deleted = memory.deleteUser(userId);
+    if (deleted) {
+      void writeBackupSnapshot("deleteUser:memory");
+    }
+    return deleted;
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+
+    // Clean up dependent rows first to avoid foreign key issues.
+    await client.query("delete from cadet_badges where user_id = $1", [userId]);
+    await client.query("delete from commitments where user_id = $1", [userId]);
+
+    const result = await client.query("delete from users where id = $1", [userId]);
+
+    await client.query("commit");
+
+    const deleted = (result.rowCount ?? 0) > 0;
+    if (deleted) {
+      void writeBackupSnapshot("deleteUser:postgres");
+    }
+    return deleted;
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
 };
 
 export const getUserBadges = async (userId: string): Promise<Badge[]> => {

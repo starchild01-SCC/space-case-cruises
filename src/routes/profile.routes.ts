@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { updateUser } from "../data/repository.js";
 import { requireAuth } from "../middleware/auth.js";
+import { normalizeMediaUrl } from "./media-url.js";
 
 const profilePatchSchema = z
   .object({
@@ -21,7 +22,7 @@ profileRouter.get("/profile", requireAuth, (request, response) => {
   response.json({
     id: user.id,
     email: user.email,
-    avatar_url: user.avatarUrl,
+    avatar_url: normalizeMediaUrl(request, user.avatarUrl),
     phone_number: user.phoneNumber,
     preferred_contact: user.preferredContact,
     pronouns: user.pronouns,
@@ -48,7 +49,7 @@ profileRouter.patch("/profile", requireAuth, async (request, response) => {
   response.json({
     id: updated!.id,
     email: updated!.email,
-    avatar_url: updated!.avatarUrl,
+    avatar_url: normalizeMediaUrl(request, updated!.avatarUrl),
     phone_number: updated!.phoneNumber,
     preferred_contact: updated!.preferredContact,
     pronouns: updated!.pronouns,

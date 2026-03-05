@@ -1,6 +1,8 @@
 import request from "supertest";
-import { describe, expect, it } from "vitest";
-import { app } from "./app.js";
+import type { Express } from "express";
+import { beforeAll, describe, expect, it } from "vitest";
+
+let app: Express;
 
 interface CadreItem {
   id: string;
@@ -8,6 +10,11 @@ interface CadreItem {
 }
 
 describe("Space Case Cruises API smoke", () => {
+  beforeAll(async () => {
+    process.env.ALLOW_HEADER_AUTH = "true";
+    ({ app } = await import("./app.js"));
+  });
+
   it("returns 401 when unauthenticated", async () => {
     const response = await request(app).get("/api/v1/profile");
     expect(response.status).toBe(401);
@@ -30,7 +37,7 @@ describe("Space Case Cruises API smoke", () => {
     const updateResponse = await request(app)
       .patch(`/api/v1/admin/cadets/${target.id}`)
       .set("x-user-email", "admin@spacecase.local")
-      .send({ role: "user", is_disabled: false });
+      .send({ is_disabled: false });
 
     expect(updateResponse.status).toBe(200);
     expect(updateResponse.body.role).toBe("user");

@@ -72,6 +72,8 @@ export interface Cruise {
   endsOn: string | null;
   mapImageUrl: string | null;
   specialPageImageUrl: string | null;
+  castingCost: number | null;
+  castingCostUrl: string | null;
   status: CruiseStatus;
   isFeatured: boolean;
   sortOrder: number;

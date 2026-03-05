@@ -7,8 +7,9 @@ import {
   listCommitmentsForCruiseSubgroup,
   transitionCommitment,
 } from "../data/repository.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, tryAuth } from "../middleware/auth.js";
 import { HttpError } from "../middleware/errors.js";
+import { normalizeMediaUrl } from "./media-url.js";
 
 const cruiseSubgroupIdParamSchema = z.object({
   id: z.string().uuid(),
@@ -28,9 +29,33 @@ const commitmentToggleSchema = z
   })
   .strict();
 
+const resolveDescription = (
+  overrideDescription: string | null,
+  defaultDescription: string | null,
+): string | null => {
+  const override = overrideDescription?.trim();
+  if (override) {
+    return override;
+  }
+
+  const fallback = defaultDescription?.trim();
+  return fallback || null;
+};
+
+const resolveName = (overrideName: string | null, defaultName: string): string => {
+  const override = overrideName?.trim();
+  if (override) {
+    return override;
+  }
+
+  return defaultName;
+};
+
 export const commitmentsRouter = Router();
 
-commitmentsRouter.get("/cruise-subgroups/:id", requireAuth, async (request, response) => {
+// Public subgroup detail endpoint, with optional auth.
+// When signed in, callers may request `include_committed_cadets=true` to fetch committed cadet details.
+commitmentsRouter.get("/cruise-subgroups/:id", tryAuth, async (request, response) => {
   const { id } = cruiseSubgroupIdParamSchema.parse(request.params);
   const { include_committed_cadets } = subgroupDetailQuerySchema.parse(request.query);
 
@@ -42,6 +67,10 @@ commitmentsRouter.get("/cruise-subgroups/:id", requireAuth, async (request, resp
   const subgroup = await findSubgroupById(assignment.subgroupId);
   if (!subgroup) {
     throw new HttpError(404, "NOT_FOUND", "Subgroup not found");
+  }
+
+  if (include_committed_cadets && !request.authUser) {
+    throw new HttpError(401, "UNAUTHENTICATED", "Authentication required to view committed cadets");
   }
 
   const committed = await listCommitmentsForCruiseSubgroup(id, ["committed"]);
@@ -69,9 +98,9 @@ commitmentsRouter.get("/cruise-subgroups/:id", requireAuth, async (request, resp
     id: assignment.id,
     cruise_id: assignment.cruiseId,
     subgroup_id: assignment.subgroupId,
-    name: assignment.overrideName ?? subgroup.name,
-    description: assignment.overrideDescription ?? subgroup.defaultDescription,
-    detail_image_url: assignment.detailImageUrl,
+    name: resolveName(assignment.overrideName, subgroup.name),
+    description: resolveDescription(assignment.overrideDescription, subgroup.defaultDescription),
+    detail_image_url: normalizeMediaUrl(request, assignment.detailImageUrl),
     extension: subgroup.extension,
     cost_level: assignment.costLevelOverride ?? subgroup.defaultCostLevel,
     commitment_count: committed.length,

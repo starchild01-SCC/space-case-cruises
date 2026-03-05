@@ -12,6 +12,8 @@ import {
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { HttpError } from "../middleware/errors.js";
 import { findClosestUploadFileUrl } from "./uploads.routes.js";
+import { normalizeMediaUrl } from "./media-url.js";
+import type { Request } from "express";
 
 const cruiseIdParamSchema = z.object({ cruiseId: z.string().uuid() });
 const assignmentIdParamSchema = z.object({ id: z.string().uuid() });
@@ -19,35 +21,64 @@ const assignmentIdParamSchema = z.object({ id: z.string().uuid() });
 const assignmentCreateSchema = z
   .object({
     subgroup_id: z.string().uuid(),
-    override_name: z.string().trim().min(1).max(120).nullable().optional(),
-    override_description: z.string().trim().nullable().optional(),
-    detail_image_url: z.string().url().nullable().optional(),
-    cost_level_override: z.number().int().min(0).max(8).nullable().optional(),
+    override_name: z.string().trim().min(1).max(120).optional().nullable(),
+    override_description: z.string().trim().optional().nullable(),
+    detail_image_url: z.string().optional().nullable(),
+    cost_level_override: z.number().int().min(0).max(8).optional().nullable(),
     visibility_state: z.enum(["invisible", "inactive", "active"]).optional(),
     dock_visible: z.boolean().optional(),
-    map_x: z.number().min(0).max(100).nullable().optional(),
-    map_y: z.number().min(0).max(100).nullable().optional(),
-    map_scale: z.number().positive().nullable().optional(),
+    map_x: z.number().min(0).max(100).optional().nullable(),
+    map_y: z.number().min(0).max(100).optional().nullable(),
+    map_scale: z.number().positive().optional().nullable(),
   })
-  .strict();
+  .passthrough();
 
 const assignmentPatchSchema = z
   .object({
-    override_name: z.string().trim().min(1).max(120).nullable().optional(),
-    override_description: z.string().trim().nullable().optional(),
-    detail_image_url: z.string().url().nullable().optional(),
-    cost_level_override: z.number().int().min(0).max(8).nullable().optional(),
+    override_name: z.string().trim().min(1).max(120).optional().nullable(),
+    override_description: z.string().trim().optional().nullable(),
+    detail_image_url: z.string().optional().nullable(),
+    cost_level_override: z.number().int().min(0).max(8).optional().nullable(),
     visibility_state: z.enum(["invisible", "inactive", "active"]).optional(),
     dock_visible: z.boolean().optional(),
-    map_x: z.number().min(0).max(100).nullable().optional(),
-    map_y: z.number().min(0).max(100).nullable().optional(),
-    map_scale: z.number().positive().nullable().optional(),
+    map_x: z.number().min(0).max(100).optional().nullable(),
+    map_y: z.number().min(0).max(100).optional().nullable(),
+    map_scale: z.number().positive().optional().nullable(),
   })
-  .strict();
+  .passthrough();
 
-const serializeAssignment = async (assignment: Awaited<ReturnType<typeof listCruiseSubgroups>>[number]) => {
+const resolveDescription = (
+  overrideDescription: string | null,
+  defaultDescription: string | null,
+): string | null => {
+  const override = overrideDescription?.trim();
+  if (override) {
+    return override;
+  }
+
+  const fallback = defaultDescription?.trim();
+  return fallback || null;
+};
+
+const resolveName = (
+  overrideName: string | null,
+  defaultName: string | null,
+): string | null => {
+  const override = overrideName?.trim();
+  if (override) {
+    return override;
+  }
+
+  const fallback = defaultName?.trim();
+  return fallback || null;
+};
+
+const serializeAssignment = async (
+  request: Request,
+  assignment: Awaited<ReturnType<typeof listCruiseSubgroups>>[number],
+) => {
   const subgroup = await findSubgroupById(assignment.subgroupId);
-  const resolvedName = assignment.overrideName ?? subgroup?.name ?? null;
+  const resolvedName = resolveName(assignment.overrideName, subgroup?.name ?? null);
   const fallbackPoster = findClosestUploadFileUrl("subgroup-poster", resolvedName);
   const fallbackTile = subgroup
     ? findClosestUploadFileUrl("subgroup-tile", subgroup.name)
@@ -64,22 +95,25 @@ const serializeAssignment = async (assignment: Awaited<ReturnType<typeof listCru
           slug: subgroup.slug,
           code: subgroup.code,
           default_description: subgroup.defaultDescription,
-          default_tile_image_url: subgroup.defaultTileImageUrl ?? fallbackTile,
+          default_tile_image_url: normalizeMediaUrl(request, subgroup.defaultTileImageUrl ?? fallbackTile),
           extension: subgroup.extension,
           default_cost_level: subgroup.defaultCostLevel,
         }
       : null,
     override_name: assignment.overrideName,
     override_description: assignment.overrideDescription,
-    detail_image_url: assignment.detailImageUrl ?? fallbackPoster,
+    detail_image_url: normalizeMediaUrl(request, assignment.detailImageUrl ?? fallbackPoster),
     cost_level_override: assignment.costLevelOverride,
     visibility_state: assignment.visibilityState,
     dock_visible: assignment.dockVisible,
     map_x: assignment.mapX,
     map_y: assignment.mapY,
     map_scale: assignment.mapScale,
-    effective_name: assignment.overrideName ?? subgroup?.name ?? null,
-    effective_description: assignment.overrideDescription ?? subgroup?.defaultDescription ?? null,
+    effective_name: resolveName(assignment.overrideName, subgroup?.name ?? null),
+    effective_description: resolveDescription(
+      assignment.overrideDescription,
+      subgroup?.defaultDescription ?? null,
+    ),
     effective_cost_level: assignment.costLevelOverride ?? subgroup?.defaultCostLevel ?? null,
     created_at: assignment.createdAt,
     updated_at: assignment.updatedAt,
@@ -108,7 +142,8 @@ const assertCruisePlacementAllowed = (
 
 export const cruiseSubgroupsRouter = Router();
 
-cruiseSubgroupsRouter.get("/cruises/:cruiseId/subgroups", requireAuth, async (request, response) => {
+// Public browse endpoint (unregistered users can view cruise subgroups).
+cruiseSubgroupsRouter.get("/cruises/:cruiseId/subgroups", async (request, response) => {
   const { cruiseId } = cruiseIdParamSchema.parse(request.params);
   const cruise = await findCruiseById(cruiseId);
 
@@ -117,7 +152,9 @@ cruiseSubgroupsRouter.get("/cruises/:cruiseId/subgroups", requireAuth, async (re
   }
 
   response.json({
-    items: await Promise.all((await listCruiseSubgroups(cruiseId)).map(serializeAssignment)),
+    items: await Promise.all(
+      (await listCruiseSubgroups(cruiseId)).map((assignment) => serializeAssignment(request, assignment)),
+    ),
   });
 });
 
@@ -127,6 +164,7 @@ cruiseSubgroupsRouter.post(
   requireRole(["admin"]),
   async (request, response) => {
     const { cruiseId } = cruiseIdParamSchema.parse(request.params);
+    console.log("[DEBUG] POST /admin/cruises/:cruiseId/subgroups - Request body:", JSON.stringify(request.body, null, 2));
     const payload = assignmentCreateSchema.parse(request.body);
 
     const cruise = await findCruiseById(cruiseId);
@@ -164,7 +202,7 @@ cruiseSubgroupsRouter.post(
       mapScale: payload.map_scale ?? 1,
     });
 
-    response.status(201).json(await serializeAssignment(created));
+    response.status(201).json(await serializeAssignment(request, created));
   },
 );
 
@@ -174,6 +212,7 @@ cruiseSubgroupsRouter.patch(
   requireRole(["admin"]),
   async (request, response) => {
     const { id } = assignmentIdParamSchema.parse(request.params);
+    console.log("[DEBUG] PATCH /admin/cruise-subgroups/:id - Request body:", JSON.stringify(request.body, null, 2));
     const payload = assignmentPatchSchema.parse(request.body);
 
     const existing = await findCruiseSubgroupById(id);
@@ -211,6 +250,6 @@ cruiseSubgroupsRouter.patch(
       mapScale: payload.map_scale !== undefined && payload.map_scale !== null ? payload.map_scale : current.mapScale,
     }));
 
-    response.json(await serializeAssignment(updated!));
+    response.json(await serializeAssignment(request, updated!));
   },
 );

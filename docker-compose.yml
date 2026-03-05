@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-space_case_cruises}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-space_case_cruises}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-4000}:4000"
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-space_case_cruises}}
+      # For production with Cloudflare Tunnel, set CORS_ALLOWED_ORIGINS in .env to your public domain
+      # Example: CORS_ALLOWED_ORIGINS=https://yourdomain.com
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://${HOST_IP:-192.168.1.225},http://${HOST_IP:-192.168.1.225}:${UI_PORT:-8081},http://localhost,http://127.0.0.1}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./backups:/app/backups
+      - ./firebase-service-account.json:/app/firebase-service-account.json
+
+  ui:
+    build:
+      context: ui
+      dockerfile: ../Dockerfile.ui
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-AIzaSyCE7rVjUy447l15eRZ_bESwEQs5N0xFC7E}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-camprpg-4919a.firebaseapp.com}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-camprpg-4919a}
+        VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET:-camprpg-4919a.firebasestorage.app}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID:-603236175475}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-1:603236175475:web:5df7db8cad5c19a2b26406}
+    ports:
+      - "${UI_PORT:-8081}:80"
+
+volumes:
+  postgres_data:

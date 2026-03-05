@@ -8,6 +8,7 @@ import {
   getIdToken,
 } from "./firebase";
 
+// Used only for local development when the API is running in `header-sim` mode.
 type Identity = "admin" | "cadet";
 
 interface ApiState {
@@ -31,6 +32,8 @@ interface CruiseItem {
   map_image_url: string | null;
   special_page_image_url: string | null;
   special_page_image_source?: "saved" | "fallback" | "none";
+  casting_cost: number | null;
+  casting_cost_url: string | null;
   status: "active" | "archived";
   is_featured: boolean;
   sort_order: number;
@@ -106,6 +109,8 @@ interface EditableCruise {
   ends_on: string;
   map_image_url: string;
   special_page_image_url: string;
+  casting_cost: string;
+  casting_cost_url: string;
   status: "active" | "archived";
   is_featured: boolean;
   sort_order: string;
@@ -192,17 +197,25 @@ interface EditableCadetAdmin {
   pronouns: "they_them" | "he_him" | "she_her" | "any_all" | "";
   playa_name: string;
   cadet_extension: string;
-  role: "user" | "admin";
   is_disabled: boolean;
 }
 
 const RAW_API_BASE =
-  import.meta.env.VITE_API_BASE_URL?.toString().trim() || "http://localhost:4000";
+  import.meta.env.VITE_API_BASE_URL?.toString().trim() ||
+  (typeof window !== "undefined" ? window.location.origin : "");
 
 const normalizedApiBase = RAW_API_BASE.replace(/\/+$/, "");
-const apiPrefix = normalizedApiBase.endsWith("/api/v1")
-  ? normalizedApiBase
-  : `${normalizedApiBase}/api/v1`;
+const apiPrefix = (() => {
+  if (normalizedApiBase.endsWith("/api/v1")) {
+    return normalizedApiBase;
+  }
+
+  if (normalizedApiBase.endsWith("/api")) {
+    return `${normalizedApiBase}/v1`;
+  }
+
+  return `${normalizedApiBase}/api/v1`;
+})();
 
 const basePath = (() => {
   if (normalizedApiBase.startsWith("/")) {
@@ -224,7 +237,7 @@ const basePath = (() => {
 const apiBaseWarning =
   basePath === null
     ? "VITE_API_BASE_URL must be an absolute URL (or start with /)."
-    : basePath === "/" || basePath === "/api/v1"
+    : basePath === "/" || basePath === "/api" || basePath === "/api/v1"
       ? null
       : `VITE_API_BASE_URL includes path '${basePath}'. Use host root or /api/v1.`;
 
@@ -246,6 +259,22 @@ const apiOrigin = (() => {
   return "";
 })();
 
+const apiBridgePathPrefix = (() => {
+  if (apiPrefix.startsWith("/")) {
+    return apiPrefix.replace(/\/v1$/, "");
+  }
+
+  if (/^https?:\/\//i.test(apiPrefix)) {
+    try {
+      return new URL(apiPrefix).pathname.replace(/\/v1$/, "") || "/api";
+    } catch {
+      return "/api";
+    }
+  }
+
+  return "/api";
+})();
+
 const resolveMediaUrl = (value: string | null | undefined): string => {
   if (!value || !value.trim()) {
     return "";
@@ -255,6 +284,15 @@ const resolveMediaUrl = (value: string | null | undefined): string => {
   if (/^https?:\/\//i.test(raw)) {
     try {
       const parsed = new URL(raw);
+      const isLocalhostHost =
+        parsed.hostname === "localhost" ||
+        parsed.hostname === "127.0.0.1" ||
+        parsed.hostname === "::1";
+
+      if (apiOrigin && isLocalhostHost && parsed.pathname.startsWith("/uploads/")) {
+        return `${apiOrigin}${parsed.pathname}${parsed.search}`;
+      }
+
       if (
         import.meta.env.DEV &&
         apiOrigin &&
@@ -274,15 +312,43 @@ const resolveMediaUrl = (value: string | null | undefined): string => {
   }
 
   if (raw.startsWith("/")) {
+    if (raw.startsWith("/uploads/")) {
+      return apiOrigin ? `${apiOrigin}${apiBridgePathPrefix}${raw}` : `${apiBridgePathPrefix}${raw}`;
+    }
+
     return apiOrigin ? `${apiOrigin}${raw}` : raw;
   }
 
   return apiOrigin ? `${apiOrigin}/${raw.replace(/^\/+/, "")}` : raw;
 };
 
+/**
+ * Format a cruise date string (YYYY-MM-DD) to a human-readable format
+ * @param dateString ISO date string or null
+ * @returns Formatted date like 'Jul 10, 2026' or 'TBD' if null/invalid
+ */
+const formatCruiseDate = (dateString: string | null): string => {
+  if (!dateString) return "TBD";
+  
+  try {
+    const date = new Date(dateString);
+    // Check if valid date
+    if (isNaN(date.getTime())) return "TBD";
+    
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+  } catch {
+    return "TBD";
+  }
+};
+
+// Used only in header-sim auth mode during local development, to simulate different users.
 const IDENTITY_EMAIL: Record<Identity, string> = {
-  admin: "admin@spacecase.local",
-  cadet: "cadet@spacecase.local",
+  admin: "chancellor-dev@example.test",
+  cadet: "cadet-dev@example.test",
 };
 
 const parseCruises = (payload: unknown): CruiseItem[] => {
@@ -469,7 +535,6 @@ const toEditableCadetAdmin = (cadet: CadreItem): EditableCadetAdmin => ({
   pronouns: cadet.pronouns ?? "",
   playa_name: cadet.playa_name,
   cadet_extension: cadet.cadet_extension ?? "",
-  role: cadet.role,
   is_disabled: cadet.is_disabled,
 });
 
@@ -489,6 +554,8 @@ const toEditableCruise = (cruise: CruiseItem): EditableCruise => ({
   ends_on: cruise.ends_on ?? "",
   map_image_url: cruise.map_image_url ?? "",
   special_page_image_url: cruise.special_page_image_url ?? "",
+  casting_cost: cruise.casting_cost === null ? "" : String(cruise.casting_cost),
+  casting_cost_url: cruise.casting_cost_url ?? "",
   status: cruise.status,
   is_featured: cruise.is_featured,
   sort_order: String(cruise.sort_order),
@@ -522,6 +589,8 @@ const emptyCruiseDraft = (): EditableCruise => ({
   ends_on: "",
   map_image_url: "",
   special_page_image_url: "",
+  casting_cost: "",
+  casting_cost_url: "",
   status: "active",
   is_featured: false,
   sort_order: "0",
@@ -571,6 +640,22 @@ const slugFromName = (name: string): string => {
   return slug || "subgroup";
 };
 
+const uniqueSlugFromName = (name: string, existingSlugs: Set<string>): string => {
+  const base = slugFromName(name);
+  if (!existingSlugs.has(base)) {
+    return base;
+  }
+
+  let index = 2;
+  let candidate = `${base}-${index}`;
+  while (existingSlugs.has(candidate)) {
+    index += 1;
+    candidate = `${base}-${index}`;
+  }
+
+  return candidate;
+};
+
 const codeFromName = (name: string): string => {
   const code = name
     .trim()
@@ -581,6 +666,22 @@ const codeFromName = (name: string): string => {
     .replace(/^_|_$/g, "");
 
   return code || "SUBGROUP";
+};
+
+const uniqueCodeFromName = (name: string, existingCodes: Set<string>): string => {
+  const base = codeFromName(name);
+  if (!existingCodes.has(base)) {
+    return base;
+  }
+
+  let index = 2;
+  let candidate = `${base}_${index}`;
+  while (existingCodes.has(candidate)) {
+    index += 1;
+    candidate = `${base}_${index}`;
+  }
+
+  return candidate;
 };
 
 const validateCruiseDraft = (draft: EditableCruise): string | null => {
@@ -612,7 +713,7 @@ const validateSubgroupDraft = (draft: EditableSubgroup): string | null => {
 
   const difficulty = Number.parseInt(draft.default_cost_level, 10);
   if (!Number.isInteger(difficulty) || difficulty < 0 || difficulty > 8) {
-    return "Difficulty must be 0-8.";
+    return "Challenge must be 0-8.";
   }
 
   return null;
@@ -632,10 +733,10 @@ const validateCruiseSubgroupDraft = (
 
   const difficultyOverride = parseNullableNumber(draft.cost_level_override);
   if (Number.isNaN(difficultyOverride)) {
-    return "Difficulty override must be a number.";
+    return "Challenge override must be a number.";
   }
   if (difficultyOverride !== null && (difficultyOverride < 0 || difficultyOverride > 8)) {
-    return "Difficulty override must be 0-8.";
+    return "Challenge override must be 0-8.";
   }
 
   const mapX = parseNullableNumber(draft.map_x);
@@ -657,10 +758,69 @@ const validateCruiseSubgroupDraft = (
   return null;
 };
 
+const buildAppHash = (mainView: MainView, generatedPage: GeneratedPageView): string => {
+  if (mainView !== "home") {
+    return `#${mainView}`;
+  }
+
+  if (generatedPage.kind === "cruise") {
+    return `#cruise/${encodeURIComponent(generatedPage.cruiseId)}`;
+  }
+
+  if (generatedPage.kind === "subgroup") {
+    return `#subgroup/${encodeURIComponent(generatedPage.cruiseId)}/${encodeURIComponent(
+      generatedPage.subgroupId,
+    )}`;
+  }
+
+  return "#home";
+};
+
+const parseAppHash = (hash: string): { mainView: MainView; generatedPage: GeneratedPageView } => {
+  const normalized = hash.replace(/^#/, "").trim();
+
+  if (!normalized || normalized === "home") {
+    return { mainView: "home", generatedPage: { kind: "home" } };
+  }
+
+  if (
+    normalized === "profile" ||
+    normalized === "cadre" ||
+    normalized === "collectables" ||
+    normalized === "admin"
+  ) {
+    return {
+      mainView: normalized,
+      generatedPage: { kind: "home" },
+    };
+  }
+
+  const cruiseMatch = normalized.match(/^cruise\/([^/]+)$/);
+  if (cruiseMatch?.[1]) {
+    return {
+      mainView: "home",
+      generatedPage: { kind: "cruise", cruiseId: decodeURIComponent(cruiseMatch[1]) },
+    };
+  }
+
+  const subgroupMatch = normalized.match(/^subgroup\/([^/]+)\/([^/]+)$/);
+  if (subgroupMatch?.[1] && subgroupMatch?.[2]) {
+    return {
+      mainView: "home",
+      generatedPage: {
+        kind: "subgroup",
+        cruiseId: decodeURIComponent(subgroupMatch[1]),
+        subgroupId: decodeURIComponent(subgroupMatch[2]),
+      },
+    };
+  }
+
+  return { mainView: "home", generatedPage: { kind: "home" } };
+};
+
 function App() {
-  const [identity, setIdentity] = useState<Identity>("admin");
-  const [mainView, setMainView] = useState<MainView>("admin");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [identity, setIdentity] = useState<Identity>("cadet");
+  const [mainView, setMainView] = useState<MainView>("home");
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
   const [creatingBackup, setCreatingBackup] = useState<boolean>(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
@@ -669,7 +829,6 @@ function App() {
   const [authPassword, setAuthPassword] = useState<string>("");
   const [authActionMessage, setAuthActionMessage] = useState<string | null>(null);
   const [showRegistrationBox, setShowRegistrationBox] = useState<boolean>(false);
-  const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
   const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
 
   const [editingCruises, setEditingCruises] = useState<Record<string, EditableCruise>>({});
@@ -711,6 +870,8 @@ function App() {
   const [profileCommitmentsError, setProfileCommitmentsError] = useState<string | null>(null);
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const mapCanvasRef = useRef<HTMLDivElement | null>(null);
+  const hasInitializedHistoryRef = useRef<boolean>(false);
+  const isApplyingHistoryRef = useRef<boolean>(false);
   const [profileDraft, setProfileDraft] = useState<EditableProfile>({
     avatar_url: "",
     phone_number: "",
@@ -733,16 +894,22 @@ function App() {
   });
 
   const authHeaders = useMemo(() => {
-    // If Firebase is configured and user is signed in, use Bearer token
+    // If Firebase is configured and user is signed in, use Bearer token.
     if (state.authMode === "firebase" && firebaseToken) {
       return {
         "Authorization": `Bearer ${firebaseToken}`,
       } as Record<string, string>;
     }
-    // Fallback to header simulation
-    return {
-      "x-user-email": IDENTITY_EMAIL[identity],
-    } as Record<string, string>;
+
+    // Fallback to header simulation (development only).
+    if (state.authMode === "header-sim") {
+      return {
+        "x-user-email": IDENTITY_EMAIL[identity],
+      } as Record<string, string>;
+    }
+
+    // Unregistered users (public browse endpoints).
+    return {} as Record<string, string>;
   }, [identity, state.authMode, firebaseToken]);
 
   const jsonHeaders = useMemo(
@@ -890,30 +1057,55 @@ function App() {
   const visibleCadets = useMemo(() => cadre.filter((cadet) => !cadet.is_disabled), [cadre]);
   const sessionUserEmail = useMemo(() => {
     const email = (state.session as { user?: { email?: string } } | null)?.user?.email;
-    return email || IDENTITY_EMAIL[identity];
-  }, [state.session, identity]);
+    return email ?? "";
+  }, [state.session]);
+
+  const isRegistered = Boolean((state.session as { user?: { id?: string } } | null)?.user?.id);
+  const isChancellor = (state.session as { user?: { role?: string } } | null)?.user?.role === "admin";
 
   const load = async (): Promise<void> => {
-    setLoading(true);
     setState((current) => ({ ...current, error: null }));
 
     try {
-      const [modeRes, sessionRes, profileRes, cadreRes, cruisesRes, subgroupsRes] =
-        await Promise.all([
-          fetch(apiPath("/auth/mode")),
+      const [modeRes, cruisesRes, subgroupsRes] = await Promise.all([
+        fetch(apiPath("/auth/mode")),
+        fetch(apiPath("/cruises"), { headers: authHeaders }),
+        fetch(apiPath("/subgroups"), { headers: authHeaders }),
+      ]);
+
+      const mode = await modeRes.json();
+      const cruisesPayload = await cruisesRes.json();
+      const subgroupsPayload = await subgroupsRes.json();
+
+      if (!modeRes.ok || !cruisesRes.ok || !subgroupsRes.ok) {
+        const errorBody = [mode, cruisesPayload, subgroupsPayload]
+          .map((payload) => (payload as { error?: { message?: string } })?.error?.message)
+          .find((message) => typeof message === "string");
+        throw new Error(
+          errorBody
+            ? `${errorBody} (mode=${modeRes.status}, cruises=${cruisesRes.status}, subgroups=${subgroupsRes.status})`
+            : `API request failed (mode=${modeRes.status}, cruises=${cruisesRes.status}, subgroups=${subgroupsRes.status})`,
+        );
+      }
+
+      const authCandidate = Object.keys(authHeaders).length > 0;
+
+      let session: unknown = null;
+      let profile: unknown = null;
+      let cadre: unknown = null;
+
+      if (authCandidate) {
+        const [sessionRes, profileRes, cadreRes] = await Promise.all([
           fetch(apiPath("/auth/session"), { headers: authHeaders }),
           fetch(apiPath("/profile"), { headers: authHeaders }),
           fetch(apiPath("/cadre"), { headers: authHeaders }),
-          fetch(apiPath("/cruises"), { headers: authHeaders }),
-          fetch(apiPath("/subgroups"), { headers: authHeaders }),
         ]);
 
-      const mode = await modeRes.json();
-      const session = await sessionRes.json();
-      const profile = await profileRes.json();
-      const cadre = await cadreRes.json();
-      const cruisesPayload = await cruisesRes.json();
-      const subgroupsPayload = await subgroupsRes.json();
+        // If auth fails, we still want browsing to work; just treat the user as unregistered.
+        session = sessionRes.ok ? await sessionRes.json() : null;
+        profile = profileRes.ok ? await profileRes.json() : null;
+        cadre = cadreRes.ok ? await cadreRes.json() : null;
+      }
 
       const cruiseItems = parseCruises(cruisesPayload);
 
@@ -929,18 +1121,8 @@ function App() {
 
       const failedCruiseSubgroup = cruiseSubgroupResults.find((result) => !result.response.ok);
 
-      if (
-        !sessionRes.ok ||
-        !profileRes.ok ||
-        !cadreRes.ok ||
-        !cruisesRes.ok ||
-        !subgroupsRes.ok ||
-        failedCruiseSubgroup
-      ) {
+      if (failedCruiseSubgroup) {
         const errorBody = [
-          session,
-          profile,
-          cadre,
           cruisesPayload,
           subgroupsPayload,
           failedCruiseSubgroup?.payload,
@@ -950,8 +1132,8 @@ function App() {
 
         throw new Error(
           errorBody
-            ? `${errorBody} (session=${sessionRes.status}, profile=${profileRes.status}, cadre=${cadreRes.status}, cruises=${cruisesRes.status}, subgroups=${subgroupsRes.status})`
-            : `API request failed (session=${sessionRes.status}, profile=${profileRes.status}, cadre=${cadreRes.status}, cruises=${cruisesRes.status}, subgroups=${subgroupsRes.status})`,
+            ? `${errorBody} (cruiseSubgroups=${failedCruiseSubgroup.response.status})`
+            : `API request failed (cruiseSubgroups=${failedCruiseSubgroup.response.status})`,
         );
       }
 
@@ -974,8 +1156,6 @@ function App() {
         ...current,
         error: (error as Error).message,
       }));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -983,16 +1163,62 @@ function App() {
     void load();
   }, [identity, authHeaders]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const applyHash = (): void => {
+      const next = parseAppHash(window.location.hash);
+      isApplyingHistoryRef.current = true;
+      setMainView(next.mainView);
+      setGeneratedPage(next.generatedPage);
+    };
+
+    applyHash();
+    const onPopState = (): void => applyHash();
+    window.addEventListener("popstate", onPopState);
+
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const targetHash = buildAppHash(mainView, generatedPage);
+    const currentHash = window.location.hash || "#home";
+
+    if (!hasInitializedHistoryRef.current) {
+      if (currentHash !== targetHash) {
+        window.history.replaceState(window.history.state, "", targetHash);
+      }
+      hasInitializedHistoryRef.current = true;
+      isApplyingHistoryRef.current = false;
+      return;
+    }
+
+    if (isApplyingHistoryRef.current) {
+      isApplyingHistoryRef.current = false;
+      return;
+    }
+
+    if (currentHash !== targetHash) {
+      window.history.pushState(window.history.state, "", targetHash);
+    }
+  }, [mainView, generatedPage]);
+
   // Firebase auth state listener
   useEffect(() => {
     const unsubscribe = onAuthChange(async (user) => {
       if (user) {
         const token = await getIdToken(user);
         setFirebaseToken(token);
-        setIsSignedIn(true);
       } else {
         setFirebaseToken(null);
-        setIsSignedIn(false);
       }
     });
 
@@ -1030,8 +1256,13 @@ function App() {
   const fetchCruiseSubgroupDetail = async (
     cruiseSubgroupId: string,
   ): Promise<CruiseSubgroupDetailItem> => {
+    const includeCommittedCadets = isRegistered;
     const response = await fetch(
-      apiPath(`/cruise-subgroups/${cruiseSubgroupId}?include_committed_cadets=true`),
+      apiPath(
+        includeCommittedCadets
+          ? `/cruise-subgroups/${cruiseSubgroupId}?include_committed_cadets=true`
+          : `/cruise-subgroups/${cruiseSubgroupId}`,
+      ),
       {
         headers: authHeaders,
       },
@@ -1164,10 +1395,6 @@ function App() {
   }, [generatedPage, cruiseSubgroupByPair, authHeaders]);
 
   useEffect(() => {
-    setMainView(identity === "admin" ? "admin" : "home");
-  }, [identity]);
-
-  useEffect(() => {
     if (!profile) {
       return;
     }
@@ -1185,7 +1412,7 @@ function App() {
   }, [profile, authHeaders]);
 
   useEffect(() => {
-    if (identity !== "admin") {
+    if (!isChancellor) {
       return;
     }
 
@@ -1195,7 +1422,7 @@ function App() {
         return accumulator;
       }, {}),
     );
-  }, [cadre, identity]);
+  }, [cadre, isChancellor]);
 
   const uploadImage = async (
     type: UploadKind,
@@ -1213,7 +1440,8 @@ function App() {
       query.set("ref", options.ref.trim());
     }
 
-    const response = await fetch(apiPath(`/admin/uploads?${query.toString()}`), {
+    const uploadEndpoint = type === "cadet-avatar" ? "/uploads/avatar" : "/admin/uploads";
+    const response = await fetch(apiPath(`${uploadEndpoint}?${query.toString()}`), {
       method: "POST",
       headers: authHeaders,
       body: form,
@@ -1421,7 +1649,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (identity !== "admin") {
+    if (!isChancellor) {
       return;
     }
 
@@ -1439,7 +1667,7 @@ function App() {
       }, {}),
     );
 
-  }, [cruises, subgroups, cruiseSubgroups, identity]);
+  }, [cruises, subgroups, cruiseSubgroups, isChancellor]);
 
   useEffect(() => {
     if (!newSubgroupCruiseId && cruises[0]?.id) {
@@ -1697,6 +1925,7 @@ function App() {
 
     const year = Number.parseInt(draft.year, 10);
     const sortOrder = Number.parseInt(draft.sort_order, 10);
+    const castingCost = draft.casting_cost.trim() ? Number.parseInt(draft.casting_cost, 10) : null;
     if (!draft.name.trim() || Number.isNaN(year) || Number.isNaN(sortOrder)) {
       setAdminMessage("Cruise requires name, year, and sort order.");
       return;
@@ -1718,6 +1947,8 @@ function App() {
           map_image_url: draft.map_image_url.trim() ? draft.map_image_url.trim() : null,
           special_page_image_url:
             draft.special_page_image_url.trim() ? draft.special_page_image_url.trim() : null,
+          casting_cost: castingCost,
+          casting_cost_url: draft.casting_cost_url.trim() ? draft.casting_cost_url.trim() : null,
           status: draft.status,
           is_featured: draft.is_featured,
           sort_order: sortOrder,
@@ -1747,6 +1978,7 @@ function App() {
 
     const year = Number.parseInt(newCruise.year, 10);
     const sortOrder = Number.parseInt(newCruise.sort_order, 10);
+    const castingCost = newCruise.casting_cost.trim() ? Number.parseInt(newCruise.casting_cost, 10) : null;
     if (!newCruise.name.trim() || Number.isNaN(year) || Number.isNaN(sortOrder)) {
       setAdminMessage("New cruise needs name, year, and sort order.");
       return;
@@ -1768,6 +2000,8 @@ function App() {
           map_image_url: newCruise.map_image_url.trim() ? newCruise.map_image_url.trim() : null,
           special_page_image_url:
             newCruise.special_page_image_url.trim() ? newCruise.special_page_image_url.trim() : null,
+          casting_cost: castingCost,
+          casting_cost_url: newCruise.casting_cost_url.trim() ? newCruise.casting_cost_url.trim() : null,
           is_featured: newCruise.is_featured,
           sort_order: sortOrder,
         }),
@@ -1817,7 +2051,7 @@ function App() {
 
     const defaultCostLevel = Number.parseInt(draft.default_cost_level, 10);
     if (!draft.name.trim() || Number.isNaN(defaultCostLevel)) {
-      setAdminMessage("Subgroup requires name and difficulty.");
+      setAdminMessage("Subgroup requires name and challenge.");
       return;
     }
 
@@ -1825,6 +2059,14 @@ function App() {
       setAdminMessage("Select a cruise dependency.");
       return;
     }
+
+    const existingSubgroup = subgroups.find((item) => item.id === subgroupId);
+    const previousName = (existingSubgroup?.name ?? "").trim();
+    const nextName = draft.name.trim();
+    const previousDefaultCostLevel = existingSubgroup?.default_cost_level ?? defaultCostLevel;
+    const nextDefaultCostLevel = defaultCostLevel;
+    const previousDefaultDescription = (existingSubgroup?.default_description ?? "").trim();
+    const nextDefaultDescription = draft.default_description.trim();
 
     setSavingSubgroupId(subgroupId);
     setAdminMessage(null);
@@ -1862,7 +2104,7 @@ function App() {
         Number.isNaN(mapScale) ||
         mapScale === null
       ) {
-        throw new Error("Invalid map or difficulty values for cruise dependency.");
+        throw new Error("Invalid map or challenge values for cruise dependency.");
       }
 
       if (existingAssignment) {
@@ -1870,8 +2112,8 @@ function App() {
           method: "PATCH",
           headers: jsonHeaders,
           body: JSON.stringify({
-            override_name: dependencyDraft.override_name.trim() || null,
-            override_description: dependencyDraft.override_description.trim() || null,
+            override_name: nextName || null,
+            override_description: nextDefaultDescription || null,
             detail_image_url: dependencyDraft.detail_image_url.trim() || null,
             cost_level_override: costLevelOverride,
             visibility_state: dependencyDraft.visibility_state,
@@ -1895,8 +2137,8 @@ function App() {
             headers: jsonHeaders,
             body: JSON.stringify({
               subgroup_id: subgroupId,
-              override_name: dependencyDraft.override_name.trim() || null,
-              override_description: dependencyDraft.override_description.trim() || null,
+              override_name: nextName || null,
+              override_description: nextDefaultDescription || null,
               detail_image_url: dependencyDraft.detail_image_url.trim() || null,
               cost_level_override: costLevelOverride,
               visibility_state: dependencyDraft.visibility_state,
@@ -1912,6 +2154,63 @@ function App() {
         if (!createResponse.ok) {
           const createMessage = (createPayload as { error?: { message?: string } })?.error?.message;
           throw new Error(createMessage || `Failed to create subgroup page (${createResponse.status})`);
+        }
+      }
+
+      const shouldSyncDescription = previousDefaultDescription !== nextDefaultDescription;
+      const shouldSyncName = previousName !== nextName;
+      const shouldSyncCostLevel = previousDefaultCostLevel !== nextDefaultCostLevel;
+
+      if (shouldSyncDescription || shouldSyncName || shouldSyncCostLevel) {
+        const inheritedAssignments = cruiseSubgroups.filter((item) => {
+          if (item.subgroup_id !== subgroupId) {
+            return false;
+          }
+
+          if (existingAssignment && item.id === existingAssignment.id) {
+            return false;
+          }
+
+          return true;
+        });
+
+        for (const assignment of inheritedAssignments) {
+          const patchBody: {
+            override_description?: string | null;
+            override_name?: string | null;
+            cost_level_override?: number | null;
+          } = {};
+
+          if (
+            shouldSyncDescription &&
+            (assignment.override_description ?? "").trim() === previousDefaultDescription
+          ) {
+            patchBody.override_description = nextDefaultDescription || null;
+          }
+
+          if (shouldSyncName && (assignment.override_name ?? "").trim() === previousName) {
+            patchBody.override_name = nextName || null;
+          }
+
+          if (shouldSyncCostLevel && assignment.cost_level_override === previousDefaultCostLevel) {
+            patchBody.cost_level_override = nextDefaultCostLevel;
+          }
+
+          if (!Object.keys(patchBody).length) {
+            continue;
+          }
+
+          const syncResponse = await fetch(apiPath(`/admin/cruise-subgroups/${assignment.id}`), {
+            method: "PATCH",
+            headers: jsonHeaders,
+            body: JSON.stringify(patchBody),
+          });
+
+          if (!syncResponse.ok) {
+            const syncPayload = await syncResponse.json().catch(() => ({}));
+            const syncMessage = (syncPayload as { error?: { message?: string } })?.error?.message;
+            throw new Error(syncMessage || `Failed to sync subgroup assignments (${syncResponse.status})`);
+          }
         }
       }
 
@@ -1932,7 +2231,7 @@ function App() {
 
     const defaultCostLevel = Number.parseInt(newSubgroup.default_cost_level, 10);
     if (!newSubgroup.name.trim() || Number.isNaN(defaultCostLevel)) {
-      setAdminMessage("New subgroup needs name and difficulty.");
+      setAdminMessage("New subgroup needs name and challenge.");
       return;
     }
 
@@ -1940,6 +2239,11 @@ function App() {
       setAdminMessage("Select which cruise this subgroup depends on.");
       return;
     }
+
+    const existingSlugs = new Set(subgroups.map((subgroup) => subgroup.slug));
+    const existingCodes = new Set(subgroups.map((subgroup) => subgroup.code));
+    const slug = uniqueSlugFromName(newSubgroup.name, existingSlugs);
+    const code = uniqueCodeFromName(newSubgroup.name, existingCodes);
 
     setCreatingSubgroup(true);
     setAdminMessage(null);
@@ -1950,8 +2254,8 @@ function App() {
         headers: jsonHeaders,
         body: JSON.stringify({
           name: newSubgroup.name.trim(),
-          slug: slugFromName(newSubgroup.name),
-          code: codeFromName(newSubgroup.name),
+          slug,
+          code,
           default_description: newSubgroup.default_description.trim() || null,
           default_tile_image_url: newSubgroup.default_tile_image_url.trim() || null,
           extension: newSubgroup.extension.trim() || null,
@@ -2051,7 +2355,6 @@ function App() {
           pronouns: "",
           playa_name: "",
           cadet_extension: "",
-          role: "user",
           is_disabled: false,
         }),
         [field]: value,
@@ -2079,7 +2382,6 @@ function App() {
           pronouns: draft.pronouns || null,
           playa_name: draft.playa_name.trim(),
           cadet_extension: draft.cadet_extension.trim(),
-          role: draft.role,
           is_disabled: draft.is_disabled,
         }),
       });
@@ -2096,6 +2398,41 @@ function App() {
       setAdminMessage((error as Error).message);
     } finally {
       setSavingCadetId(null);
+    }
+  };
+
+  const deleteCadet = async (cadetId: string, displayName: string): Promise<void> => {
+    const label = displayName?.trim() || "this cadet";
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete ${label}? This action cannot be undone.`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setAdminMessage(null);
+
+    try {
+      const response = await fetch(apiPath(`/admin/cadets/${cadetId}`), {
+        method: "DELETE",
+        headers: authHeaders,
+      });
+
+      if (!response.ok && response.status !== 204) {
+        let message: string | undefined;
+        try {
+          const payload = (await response.json()) as { error?: { message?: string } };
+          message = payload.error?.message;
+        } catch {
+          // ignore parse errors for empty responses
+        }
+        throw new Error(message || `Failed to delete cadet (${response.status})`);
+      }
+
+      setAdminMessage("Cadet deleted.");
+      await load();
+    } catch (error) {
+      setAdminMessage((error as Error).message);
     }
   };
 
@@ -2148,7 +2485,6 @@ function App() {
 
       const token = await getIdToken(user);
       setFirebaseToken(token);
-      setIsSignedIn(true);
       setShowRegistrationBox(false);
       setAuthActionMessage(null);
       
@@ -2167,7 +2503,6 @@ function App() {
       const user = await signInWithGoogle();
       const token = await getIdToken(user);
       setFirebaseToken(token);
-      setIsSignedIn(true);
       setShowRegistrationBox(false);
       setAuthActionMessage(null);
       
@@ -2184,7 +2519,6 @@ function App() {
     try {
       await signOutUser();
       setFirebaseToken(null);
-      setIsSignedIn(false);
       setShowRegistrationBox(false);
       setAuthPassword("");
       setAuthActionMessage("Signed out.");
@@ -2199,6 +2533,8 @@ function App() {
     setGeneratedPage({ kind: "home" });
   };
 
+  console.log("Current View:", mainView, "Is Chancellor:", isChancellor);
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -2212,8 +2548,8 @@ function App() {
         </div>
 
         <div className="toolbar">
-          {!isSignedIn ? (
-            <button onClick={openRegistrationBox}>SIGN IN / SIGN UP</button>
+          {!isRegistered ? (
+            <button onClick={openRegistrationBox}>Sign In</button>
           ) : (
             <>
               <div className="user-chip">
@@ -2231,23 +2567,43 @@ function App() {
               <button onClick={handleSignOut}>Sign Out</button>
             </>
           )}
-          <div className="user-chip">
-            <span className="user-dot">◆</span>
-            <span>{sessionUserEmail}</span>
-          </div>
-          <label>
-            Identity
-            <select
-              value={identity}
-              onChange={(event) => setIdentity(event.target.value as Identity)}
-            >
-              <option value="admin">Admin</option>
-              <option value="cadet">Cadet</option>
+
+          {isRegistered ? (
+            <>
+              <div className="user-chip">
+                <span className="user-dot">◆</span>
+                <span>{sessionUserEmail}</span>
+              </div>
+
+              <select
+                value={mainView === "admin" && isChancellor ? "chancellor" : "cadet"}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value === "cadet") {
+                    // Cadet view always lands on Cruises.
+                    setMainView("home");
+                    setGeneratedPage({ kind: "home" });
+                  }
+                  if (value === "chancellor" && isChancellor) {
+                    setMainView("admin");
+                  }
+                }}
+                aria-label="Role selection"
+              >
+                <option value="cadet">Cadet</option>
+                <option value="chancellor" disabled={!isChancellor}>
+                  Chancellor
+                </option>
+              </select>
+            </>
+          ) : null}
+
+          {state.authMode === "header-sim" && import.meta.env.DEV ? (
+            <select value={identity} onChange={(event) => setIdentity(event.target.value as Identity)}>
+              <option value="admin">Chancellor (dev)</option>
+              <option value="cadet">Cadet (dev)</option>
             </select>
-          </label>
-          <button onClick={() => void load()} disabled={loading}>
-            {loading ? "Loading..." : "Refresh"}
-          </button>
+          ) : null}
         </div>
       </header>
 
@@ -2286,34 +2642,20 @@ function App() {
         </section>
       ) : null}
 
-      {mainView === "admin" ? (
-      <section className="meta-grid">
-        <div className="panel">
-          <h2>Connection</h2>
-          <p>
-            <strong>API:</strong> {apiPrefix}
-          </p>
-          <p>
-            <strong>Auth Mode:</strong> {state.authMode}
-          </p>
-          <p>
-            <strong>User Header:</strong> {IDENTITY_EMAIL[identity]}
-          </p>
-        </div>
-        <div className="panel">
-          <h2>Status</h2>
-          {apiBaseWarning ? <p className="error">{apiBaseWarning}</p> : null}
-          {state.error ? <p className="error">{state.error}</p> : <p className="ok">Connected</p>}
-          {adminMessage ? <p className="ok">{adminMessage}</p> : null}
-          {identity === "admin" ? (
+      {mainView === "admin" && isChancellor ? (
+        <section className="meta-grid">
+          <div className="panel">
+            <h2>Status</h2>
+            {apiBaseWarning ? <p className="error">{apiBaseWarning}</p> : null}
+            {state.error ? <p className="error">{state.error}</p> : <p className="ok">Connected</p>}
+            {adminMessage ? <p className="ok">{adminMessage}</p> : null}
             <div className="toolbar-row" style={{ marginTop: 10 }}>
               <button onClick={() => void createBackupSnapshot()} disabled={creatingBackup}>
                 {creatingBackup ? "Backing up..." : "Backup Now"}
               </button>
             </div>
-          ) : null}
-        </div>
-      </section>
+          </div>
+        </section>
       ) : null}
 
       {mainView === "profile" ? (
@@ -2602,7 +2944,7 @@ function App() {
         </section>
       ) : null}
 
-      {mainView === "admin" && identity === "admin" ? (
+      {mainView === "admin" && isChancellor ? (
         <>
           <section className="panel admin-table-panel">
             <h2>Admin Cadet Editor</h2>
@@ -2617,9 +2959,8 @@ function App() {
                     <th>Phone</th>
                     <th>Preferred Contact</th>
                     <th>Extension</th>
-                    <th>Role</th>
                     <th>Disabled</th>
-                    <th>Action</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2707,18 +3048,6 @@ function App() {
                           />
                         </td>
                         <td>
-                          <select
-                            className="table-input"
-                            value={draft.role}
-                            onChange={(event) =>
-                              updateCadetDraft(cadet.id, "role", event.target.value as "user" | "admin")
-                            }
-                          >
-                            <option value="user">user</option>
-                            <option value="admin">admin</option>
-                          </select>
-                        </td>
-                        <td>
                           <input
                             type="checkbox"
                             checked={draft.is_disabled}
@@ -2730,6 +3059,12 @@ function App() {
                         <td>
                           <button onClick={() => void saveCadet(cadet.id)} disabled={savingCadetId === cadet.id}>
                             {savingCadetId === cadet.id ? "Saving..." : "Save"}
+                          </button>
+                          <button
+                            style={{ marginLeft: 8, color: "#c0392b" }}
+                            onClick={() => void deleteCadet(cadet.id, cadet.playa_name)}
+                          >
+                            🗑️ Delete
                           </button>
                         </td>
                       </tr>
@@ -2753,6 +3088,8 @@ function App() {
                     <th>Ends</th>
                     <th>Cruise Map Icon</th>
                     <th>Special Cruises Image</th>
+                    <th>Casting Cost</th>
+                    <th>Casting Cost URL</th>
                     <th>Upload Cruise Map</th>
                     <th>Upload Special</th>
                     <th>Map Preview</th>
@@ -2819,6 +3156,30 @@ function App() {
                         </td>
                         <td>{draft.map_image_url ? <span className="muted small">uploaded</span> : <span className="muted">none</span>}</td>
                         <td>{draft.special_page_image_url ? <span className="muted small">uploaded</span> : <span className="muted">none</span>}</td>
+                        <td>
+                          <input
+                            className="table-input"
+                            type="number"
+                            min="0"
+                            max="10"
+                            value={draft.casting_cost}
+                            onChange={(event) =>
+                              updateCruiseDraft(cruise.id, "casting_cost", event.target.value)
+                            }
+                            placeholder="0-10"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="table-input"
+                            type="url"
+                            value={draft.casting_cost_url}
+                            onChange={(event) =>
+                              updateCruiseDraft(cruise.id, "casting_cost_url", event.target.value)
+                            }
+                            placeholder="https://..."
+                          />
+                        </td>
                         <td>
                           <label className="upload-label">
                             <input
@@ -2976,6 +3337,30 @@ function App() {
                     <td>{newCruise.map_image_url ? <span className="muted small">uploaded</span> : <span className="muted">new</span>}</td>
                     <td>{newCruise.special_page_image_url ? <span className="muted small">uploaded</span> : <span className="muted">new</span>}</td>
                     <td>
+                      <input
+                        className="table-input"
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={newCruise.casting_cost}
+                        onChange={(event) =>
+                          setNewCruise((current) => ({ ...current, casting_cost: event.target.value }))
+                        }
+                        placeholder="0-10"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="table-input"
+                        type="url"
+                        value={newCruise.casting_cost_url}
+                        onChange={(event) =>
+                          setNewCruise((current) => ({ ...current, casting_cost_url: event.target.value }))
+                        }
+                        placeholder="https://..."
+                      />
+                    </td>
+                    <td>
                       <label className="upload-label">
                         <input
                           className="table-input"
@@ -3100,7 +3485,7 @@ function App() {
                     <th>Poster Upload</th>
                     <th>Poster Preview</th>
                     <th>Phone Ext</th>
-                    <th>Difficulty</th>
+                    <th>Challenge</th>
                     <th>Status</th>
                     <th>Action</th>
                   </tr>
@@ -3563,7 +3948,7 @@ function App() {
                 <article key={`home-${cruise.id}`} className="generated-card">
                   <h3 className="generated-card-title">{cruise.name}</h3>
                   <p className="muted small generated-card-dates">
-                    Start: {cruise.starts_on || "TBD"} • End: {cruise.ends_on || "TBD"}
+                    Start: {formatCruiseDate(cruise.starts_on)} • Concludes: {formatCruiseDate(cruise.ends_on)}
                   </p>
                   {cruise.location ? (
                     <p className="muted small generated-card-location">{cruise.location}</p>
@@ -3604,6 +3989,32 @@ function App() {
                 {generatedCruise.year}
                 {generatedCruise.location ? ` • ${generatedCruise.location}` : ""}
               </p>
+              {(generatedCruise.starts_on || generatedCruise.ends_on) ? (
+                <p className="muted small">
+                  {generatedCruise.starts_on ? `Start: ${formatCruiseDate(generatedCruise.starts_on)}` : ""}
+                  {generatedCruise.starts_on && generatedCruise.ends_on ? " • " : ""}
+                  {generatedCruise.ends_on ? `Concludes: ${formatCruiseDate(generatedCruise.ends_on)}` : ""}
+                </p>
+              ) : null}
+              {generatedCruise.casting_cost !== null && generatedCruise.casting_cost > 0 ? (
+                <div className="casting-cost-display">
+                  <span className="casting-cost-label">Casting Cost: </span>
+                  {generatedCruise.casting_cost_url ? (
+                    <a 
+                      href={generatedCruise.casting_cost_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="casting-cost-symbols"
+                    >
+                      {"❀".repeat(generatedCruise.casting_cost)}
+                    </a>
+                  ) : (
+                    <span className="casting-cost-symbols">
+                      {"❀".repeat(generatedCruise.casting_cost)}
+                    </span>
+                  )}
+                </div>
+              ) : null}
             </div>
             {generatedCruise.map_image_url ? (
               <div className="generated-map-canvas">
@@ -3748,10 +4159,9 @@ function App() {
                 ) : (
                   <div className="generated-placeholder">No subgroup poster uploaded.</div>
                 )}
-                <p>{subgroupDescription}</p>
-                <p className="small">Difficulty: {subgroupDifficulty}</p>
+                <p className="subgroup-description">{subgroupDescription}</p>
+                <p className="small">Challenge: <span className="difficulty-symbols">{"꩜".repeat(subgroupDifficulty)}</span></p>
                 <p className="small">Phone extension: {subgroup.extension || "n/a"}</p>
-                <p className="small">Visibility: {assignment.visibility_state}</p>
                 <p className="small">Committed cadets: {commitmentCount}</p>
                 <div className="generated-actions">
                   <button
@@ -3779,7 +4189,6 @@ function App() {
                     {committedOthers.map((cadet) => {
                       const cadreCadet = cadreById.get(cadet.id);
                       const avatarUrl = cadreCadet?.avatar_url;
-                      const extension = cadet.cadet_extension || cadreCadet?.cadet_extension || "n/a";
 
                       return (
                         <li key={cadet.id}>
@@ -3796,7 +4205,6 @@ function App() {
                             <span>
                               {cadet.playa_name}
                               {cadet.pronouns ? ` (${labelPronouns(cadet.pronouns)})` : ""}
-                              {` • ext ${extension}`}
                             </span>
                           </div>
                         </li>

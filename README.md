@@ -23,7 +23,7 @@ Phase 0 + Phase 2 backend starter generated from project specification and API c
    - `npm install`
 2. (Optional) Enable PostgreSQL mode:
    - Set `DATABASE_URL` in `.env`
-   - Apply migration: `psql "$DATABASE_URL" -f ../migrations/001_initial_space_case_schema.sql`
+   - Apply migration: `npm run db:init`
    - Seed deterministic fixture data: `npm run seed:db`
    - Reset + reseed local DB state: `ALLOW_DB_RESET=true npm run seed:reset`
    - If `DATABASE_URL` is unset, the API runs in in-memory fallback mode
@@ -47,6 +47,31 @@ Phase 0 + Phase 2 backend starter generated from project specification and API c
 - Optional: set custom API base with `VITE_API_BASE_URL` (defaults to `http://localhost:4000`)
    - Accepted formats: `http://localhost:4000` or `http://localhost:4000/api/v1`
    - Avoid other path suffixes (for example `/api`), which can cause route mismatches
+
+## Docker on Synology NAS
+- If you see Docker error `driver failed programming external connectivity ... bind ... already in use`, a host port is already taken (commonly `80` on Synology).
+- Use `.env` values to choose free host ports:
+   - `HOST_IP=192.168.1.225`
+   - `API_PORT=4000`
+   - `UI_PORT=8080`
+   - `VITE_API_BASE_URL=http://192.168.1.225:4000`
+- Start with:
+   - `cp .env.example .env` (first time)
+   - `docker compose up -d --build`
+   - `docker compose exec api npm run db:init`
+   - `docker compose exec api npm run seed:db`
+- Open:
+   - UI: `http://192.168.1.225:8080`
+   - API health: `http://192.168.1.225:4000/health`
+   - API mode via proxy: `https://<your-domain>/api/health`
+
+### PostgreSQL persistence
+- `docker-compose.yml` now includes a `postgres` service with persistent named volume `postgres_data`.
+- Default app DB URL in Docker is:
+   - `postgresql://postgres:postgres@postgres:5432/space_case_cruises`
+- Override credentials/database in `.env` with:
+   - `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DATABASE_URL`
+- Schema file is at `migrations/001_initial_space_case_schema.sql`.
 
 ## Auth Simulation (for local dev)
 This starter uses headers to simulate auth:

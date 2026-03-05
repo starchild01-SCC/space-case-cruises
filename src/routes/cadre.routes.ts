@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { getUserBadges, listUsers } from "../data/repository.js";
 import { requireAuth } from "../middleware/auth.js";
+import { normalizeMediaUrl } from "./media-url.js";
 
 const cadreQuerySchema = z.object({
   q: z.string().trim().optional(),
@@ -64,7 +65,7 @@ cadreRouter.get("/cadre", requireAuth, async (request, response) => {
   const items = await Promise.all(paged.map(async (user) => ({
     id: user.id,
     email: user.email,
-    avatar_url: user.avatarUrl,
+    avatar_url: normalizeMediaUrl(request, user.avatarUrl),
     playa_name: user.playaName,
     pronouns: user.pronouns,
     cadet_extension: user.cadetExtension,
@@ -72,7 +73,7 @@ cadreRouter.get("/cadre", requireAuth, async (request, response) => {
     phone_number: user.phoneNumber,
     badges: (await getUserBadges(user.id)).map((badge) => ({
       id: badge.id,
-      icon_url: badge.iconUrl,
+      icon_url: normalizeMediaUrl(request, badge.iconUrl),
       name: badge.name,
     })),
     role: user.role,

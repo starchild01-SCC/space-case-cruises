@@ -1,12 +1,14 @@
 import { initializeApp, cert, type App } from "firebase-admin/app";
 import { getAuth, type Auth } from "firebase-admin/auth";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
+import { basename, resolve } from "node:path";
 import { env } from "../config/env.js";
 
 export interface FirebaseIdentity {
   email: string;
   playaName: string;
   uid: string;
+  chancellor: boolean;
 }
 
 let firebaseApp: App | null = null;
@@ -15,7 +17,7 @@ let firebaseAuth: Auth | null = null;
 export const isFirebaseConfigured = Boolean(env.firebaseProjectId);
 
 export const getAuthMode = (): "firebase" | "supabase" | "header-sim" => {
-  if (isFirebaseConfigured) return "firebase";
+  if (firebaseAuth) return "firebase";
   // Keep backward compatibility with Supabase
   if (Boolean(env.supabaseUrl) && Boolean(env.supabaseAnonKey) && env.useSupabaseAuth) {
     return "supabase";
@@ -30,10 +32,32 @@ if (isFirebaseConfigured) {
     let serviceAccount: unknown;
     
     if (env.firebaseServiceAccount) {
-      // Check if it's a file path (starts with . or /)
-      if (env.firebaseServiceAccount.startsWith(".") || env.firebaseServiceAccount.startsWith("/")) {
-        // Read from file
-        const fileContent = readFileSync(env.firebaseServiceAccount, "utf-8");
+      // Check if it's likely a file path (starts with . or /, or ends with .json)
+      const looksLikePath =
+        env.firebaseServiceAccount.startsWith(".") ||
+        env.firebaseServiceAccount.startsWith("/") ||
+        env.firebaseServiceAccount.endsWith(".json");
+
+      if (looksLikePath) {
+        const configured = env.firebaseServiceAccount;
+        const fileName = basename(configured);
+        const candidates = [
+          configured,
+          resolve(process.cwd(), configured),
+          resolve(process.cwd(), fileName),
+          resolve(process.cwd(), "dist", fileName),
+          "/app/firebase-service-account.json",
+          "/app/dist/firebase-service-account.json",
+        ];
+
+        const selectedPath = candidates.find((candidate) => existsSync(candidate));
+        if (!selectedPath) {
+          throw new Error(
+            `FIREBASE_SERVICE_ACCOUNT file not found. Tried: ${candidates.join(", ")}`,
+          );
+        }
+
+        const fileContent = readFileSync(selectedPath, "utf-8");
         serviceAccount = JSON.parse(fileContent);
       } else {
         // Parse as JSON string
@@ -67,6 +91,12 @@ export const resolveFirebaseIdentity = async (
       return null;
     }
 
+    // Firebase custom claims (set via Admin SDK) are surfaced on the decoded token.
+    // We treat `chancellor: true` as the server-side source of truth for elevated access.
+    const chancellor =
+      (decodedToken as Record<string, unknown>).chancellor === true ||
+      (decodedToken as Record<string, unknown>).role === "chancellor";
+
     // Extract display name from token or use email prefix as fallback
     const fallbackName = decodedToken.email.split("@")[0] ?? "Cadet";
     const playaName = decodedToken.name || decodedToken.displayName || fallbackName;
@@ -75,6 +105,7 @@ export const resolveFirebaseIdentity = async (
       email: decodedToken.email,
       playaName,
       uid: decodedToken.uid,
+      chancellor,
     };
   } catch (error) {
     console.error("Firebase token verification failed:", error);

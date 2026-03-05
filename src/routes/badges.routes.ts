@@ -16,6 +16,8 @@ import {
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { HttpError } from "../middleware/errors.js";
 import type { Badge } from "../types/domain.js";
+import { normalizeMediaUrl } from "./media-url.js";
+import type { Request } from "express";
 
 const badgeCreateSchema = z
   .object({
@@ -45,11 +47,11 @@ const assignmentCreateSchema = z
 
 const idParamSchema = z.object({ id: z.string().uuid() });
 
-const serializeBadge = (badge: Badge) => ({
+const serializeBadge = (request: Request, badge: Badge) => ({
   id: badge.id,
   name: badge.name,
   description: badge.description,
-  icon_url: badge.iconUrl,
+  icon_url: normalizeMediaUrl(request, badge.iconUrl),
   cruise_id: badge.cruiseId,
   created_by: badge.createdBy,
   created_at: badge.createdAt,
@@ -58,8 +60,8 @@ const serializeBadge = (badge: Badge) => ({
 
 export const badgesRouter = Router();
 
-badgesRouter.get("/badges", requireAuth, async (_request, response) => {
-  response.json({ items: (await listBadges()).map(serializeBadge) });
+badgesRouter.get("/badges", requireAuth, async (request, response) => {
+  response.json({ items: (await listBadges()).map((badge) => serializeBadge(request, badge)) });
 });
 
 badgesRouter.post("/admin/badges", requireAuth, requireRole(["admin"]), async (request, response) => {
@@ -80,7 +82,7 @@ badgesRouter.post("/admin/badges", requireAuth, requireRole(["admin"]), async (r
     createdBy: request.authUser!.id,
   });
 
-  response.status(201).json(serializeBadge(created));
+  response.status(201).json(serializeBadge(request, created));
 });
 
 badgesRouter.patch("/admin/badges/:id", requireAuth, requireRole(["admin"]), async (request, response) => {
@@ -107,7 +109,7 @@ badgesRouter.patch("/admin/badges/:id", requireAuth, requireRole(["admin"]), asy
     cruiseId: payload.cruise_id !== undefined ? payload.cruise_id : current.cruiseId,
   }));
 
-  response.json(serializeBadge(updated!));
+  response.json(serializeBadge(request, updated!));
 });
 
 badgesRouter.post(

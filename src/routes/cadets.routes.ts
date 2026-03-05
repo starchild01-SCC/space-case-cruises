@@ -3,6 +3,7 @@ import { z } from "zod";
 import { findCruiseById, findUserById, getUserBadges, getUserCommitments } from "../data/repository.js";
 import { requireAuth } from "../middleware/auth.js";
 import { HttpError } from "../middleware/errors.js";
+import { normalizeMediaUrl } from "./media-url.js";
 
 const idParamSchema = z.object({
   id: z.string().uuid(),
@@ -55,7 +56,7 @@ cadetsRouter.get("/cadets/:id", requireAuth, async (request, response) => {
   response.json({
     cadet: {
       id: cadet.id,
-      avatar_url: cadet.avatarUrl,
+      avatar_url: normalizeMediaUrl(request, cadet.avatarUrl),
       playa_name: cadet.playaName,
       pronouns: cadet.pronouns,
       cadet_extension: cadet.cadetExtension,
@@ -66,7 +67,7 @@ cadetsRouter.get("/cadets/:id", requireAuth, async (request, response) => {
       id: badge.id,
       name: badge.name,
       description: badge.description,
-      icon_url: badge.iconUrl,
+      icon_url: normalizeMediaUrl(request, badge.iconUrl),
       cruise_id: badge.cruiseId,
     })),
     commitments_by_cruise: Array.from(grouped.values()),

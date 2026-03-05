@@ -117,6 +117,15 @@ export const restoreLatestMemoryBackupIfPresent = (): void => {
 
   ensureBackupDirs();
 
+  const restoreFromPayload = (parsed: { snapshot?: MemoryStoreSnapshot; mode?: string }): boolean => {
+    if (parsed.mode !== "memory" || !parsed.snapshot) {
+      return false;
+    }
+
+    applyMemoryStoreSnapshot(parsed.snapshot);
+    return true;
+  };
+
   try {
     const raw = readFileSync(latestMemorySnapshotPath, "utf8");
     const parsed = JSON.parse(raw) as {
@@ -124,12 +133,33 @@ export const restoreLatestMemoryBackupIfPresent = (): void => {
       mode?: string;
     };
 
-    if (parsed.mode !== "memory" || !parsed.snapshot) {
+    if (restoreFromPayload(parsed)) {
+      return;
+    }
+  } catch {
+    // fall through to snapshot fallback
+  }
+
+  try {
+    const newestMemorySnapshot = readdirSync(snapshotsDir)
+      .filter((name) => name.endsWith("--memory.json"))
+      .sort()
+      .at(-1);
+
+    if (!newestMemorySnapshot) {
       return;
     }
 
-    applyMemoryStoreSnapshot(parsed.snapshot);
+    const raw = readFileSync(resolve(snapshotsDir, newestMemorySnapshot), "utf8");
+    const parsed = JSON.parse(raw) as {
+      snapshot?: MemoryStoreSnapshot;
+      mode?: string;
+    };
+
+    if (restoreFromPayload(parsed)) {
+      writeJsonSync(latestMemorySnapshotPath, parsed);
+    }
   } catch {
-    // no existing backup yet
+    // no valid backup available
   }
 };

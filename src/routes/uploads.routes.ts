@@ -189,6 +189,41 @@ const upload = multer({
 
 export const uploadsRouter = Router();
 
+// Self-service avatar uploads (authenticated users).
+// Keeping this **out** of `/admin/*` allows us to restrict all `/admin` routes to admins.
+uploadsRouter.post(
+  "/uploads/avatar",
+  requireAuth,
+  (request, _response, next) => {
+    const parsed = uploadTypeSchema.safeParse(request.query);
+    if (!parsed.success) {
+      throw new HttpError(422, "VALIDATION_ERROR", "Invalid upload type", []);
+    }
+
+    if (parsed.data.type !== "cadet-avatar") {
+      throw new HttpError(403, "FORBIDDEN", "Only avatar uploads are allowed on this endpoint");
+    }
+
+    next();
+  },
+  upload.single("image"),
+  (request, response) => {
+    const parsed = uploadTypeSchema.parse(request.query);
+
+    if (!request.file) {
+      throw new HttpError(400, "VALIDATION_ERROR", "Missing image file");
+    }
+
+    const relativePath = `${uploadSubdirectoryByType[parsed.type]}/${request.file.filename}`;
+    response.status(201).json({
+      type: parsed.type,
+      file_name: request.file.filename,
+      relative_path: relativePath,
+      url: `/api/uploads/${relativePath}`,
+    });
+  },
+);
+
 uploadsRouter.post(
   "/admin/uploads",
   requireAuth,
@@ -219,7 +254,7 @@ uploadsRouter.post(
       type: parsed.type,
       file_name: request.file.filename,
       relative_path: relativePath,
-      url: `/uploads/${relativePath}`,
+      url: `/api/uploads/${relativePath}`,
     });
   },
 );

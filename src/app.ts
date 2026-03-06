@@ -42,10 +42,21 @@ app.use(
         : false,
   }),
 );
-const corsOptions = env.corsAllowedOrigins.length
-  ? { origin: env.corsAllowedOrigins, credentials: true }
-  : undefined;
-app.use(cors(corsOptions));
+
+// CORS: explicitly allow frontend at https://spacecasecamp.com (Hostinger)
+// OPTIONS preflight is handled automatically by the cors package
+const allowedOrigins = [
+  "https://spacecasecamp.com",
+  ...env.corsAllowedOrigins.filter((o) => o !== "https://spacecasecamp.com"),
+];
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 if (env.enableRateLimit) {
   app.use(

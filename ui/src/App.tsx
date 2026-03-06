@@ -1063,13 +1063,17 @@ function App() {
   const isRegistered = Boolean((state.session as { user?: { id?: string } } | null)?.user?.id);
   const isChancellor = (state.session as { user?: { role?: string } } | null)?.user?.role === "admin";
 
-  const load = async (): Promise<void> => {
+  const load = async (options?: { bustCache?: boolean }): Promise<void> => {
     setState((current) => ({ ...current, error: null }));
+
+    const cruisesUrl = options?.bustCache
+      ? apiPath("/cruises") + "?_t=" + Date.now()
+      : apiPath("/cruises");
 
     try {
       const [modeRes, cruisesRes, subgroupsRes] = await Promise.all([
         fetch(apiPath("/auth/mode")),
-        fetch(apiPath("/cruises"), { headers: authHeaders }),
+        fetch(cruisesUrl, { headers: authHeaders }),
         fetch(apiPath("/subgroups"), { headers: authHeaders }),
       ]);
 
@@ -1961,8 +1965,24 @@ function App() {
         throw new Error(message || `Failed to save cruise (${response.status})`);
       }
 
+      // Merge the updated cruise into state so the cadet cruise page and lists show new dates immediately
+      // (avoids relying on cached GET /cruises in the subsequent load())
+      const updatedCruise = payload as CruiseItem;
+      if (typeof updatedCruise?.id === "string" && typeof updatedCruise?.name === "string") {
+        setState((prev) => {
+          const current = prev.cruises as { items?: unknown[] } | null;
+          const items = Array.isArray(current?.items) ? [...current.items] : [];
+          const index = items.findIndex((item: unknown) => (item as { id?: string }).id === cruiseId);
+          if (index >= 0) {
+            items[index] = updatedCruise;
+            return { ...prev, cruises: { items } };
+          }
+          return prev;
+        });
+      }
+
       setAdminMessage("Cruise saved.");
-      await load();
+      await load({ bustCache: true });
     } catch (error) {
       setAdminMessage((error as Error).message);
     } finally {
@@ -2804,6 +2824,7 @@ function App() {
                                 className="thumb"
                                 src={resolveMediaUrl(tileImage)}
                                 alt={`${subgroup?.name || "Subgroup"} tile`}
+                                loading="lazy"
                               />
                             ) : (
                               <div className="thumb profile-commitment-thumb-fallback">?</div>
@@ -2856,6 +2877,7 @@ function App() {
                                 className="thumb"
                                 src={resolveMediaUrl(tileImage)}
                                 alt={`${subgroup?.name || "Subgroup"} tile`}
+                                loading="lazy"
                               />
                             ) : (
                               <div className="thumb profile-commitment-thumb-fallback">?</div>
@@ -4055,6 +4077,7 @@ function App() {
                         className="generated-map-tile-icon"
                         src={resolveMediaUrl(iconUrl)}
                         alt={item.override_name?.trim() || subgroup.name}
+                        loading="lazy"
                       />
                       <span className="generated-map-label">
                         {item.override_name?.trim() || subgroup.name}
@@ -4094,6 +4117,7 @@ function App() {
                         src={resolveMediaUrl(tileImage)}
                         alt={subgroupName}
                         className="generated-tile-icon"
+                        loading="lazy"
                       />
                     ) : (
                       <div className="generated-tile-placeholder">?</div>
@@ -4155,6 +4179,7 @@ function App() {
                     src={resolveMediaUrl(assignment.detail_image_url)}
                     alt={`${subgroupName} poster`}
                     className="generated-hero"
+                    loading="lazy"
                   />
                 ) : (
                   <div className="generated-placeholder">No subgroup poster uploaded.</div>

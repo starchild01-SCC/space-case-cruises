@@ -1,5 +1,6 @@
 # Stage 1: Build
 FROM node:20-alpine AS builder
+ENV NODE_OPTIONS="--dns-result-order=ipv4first"
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -8,6 +9,7 @@ RUN npm run build
 
 # Stage 2: Final Image
 FROM node:20-alpine
+ENV NODE_OPTIONS="--dns-result-order=ipv4first"
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./

@@ -1,7 +1,7 @@
 {
   "mode": "postgres",
   "reason": "updateCruiseSubgroup:postgres",
-  "timestamp": "2026-03-05T05:39:31.351Z",
+  "timestamp": "2026-03-06T03:25:15.340Z",
   "tables": {
     "users": [
       {
@@ -31,6 +31,34 @@
         "is_disabled": false,
         "created_at": "2026-03-01T20:13:05.371Z",
         "updated_at": "2026-03-01T20:13:05.371Z"
+      },
+      {
+        "id": "d7a3cfd2-1816-4333-97cd-0ccbcbd646e7",
+        "email": "sarahcelineart@gmail.com",
+        "playa_name": "Swamp witch",
+        "phone_number": null,
+        "preferred_contact": "discord",
+        "pronouns": "they_them",
+        "avatar_url": null,
+        "cadet_extension": null,
+        "role": "user",
+        "is_disabled": false,
+        "created_at": "2026-03-05T23:45:31.966Z",
+        "updated_at": "2026-03-05T23:47:03.788Z"
+      },
+      {
+        "id": "611076a7-baa0-450b-a758-71af6a1723d2",
+        "email": "kfuller1247@gmail.com",
+        "playa_name": "STRIPES",
+        "phone_number": "763-670-3570",
+        "preferred_contact": "discord",
+        "pronouns": null,
+        "avatar_url": "https://api.plugin2oneroom.com/api/uploads/cadets/avatars/stripes--avatar--611076a7-baa0-450b-a758---1772765706640.jpeg",
+        "cadet_extension": null,
+        "role": "user",
+        "is_disabled": false,
+        "created_at": "2026-03-06T02:51:24.914Z",
+        "updated_at": "2026-03-06T02:55:35.332Z"
       }
     ],
     "cruises": [
@@ -94,18 +122,6 @@
     ],
     "subgroups": [
       {
-        "id": "81164308-d1f2-4611-852d-5066293c5b4c",
-        "name": "Soot & CInder",
-        "slug": "comms",
-        "code": "COMMS",
-        "default_description": "Fire Conclave",
-        "default_tile_image_url": "http://localhost:4000/uploads/subgroups/tiles/soot-cinder--tile--81164308-d1f2-4611-852d---1771983451964.jpg",
-        "extension": "3473",
-        "default_cost_level": 4,
-        "created_at": "2026-02-23T23:58:06.529Z",
-        "updated_at": "2026-02-26T04:59:11.668Z"
-      },
-      {
         "id": "b3d60d72-b996-4f0e-bde6-8e25adda25ef",
         "name": "Star Cinq",
         "slug": "build",
@@ -128,18 +144,6 @@
         "default_cost_level": 3,
         "created_at": "2026-02-24T00:24:13.395Z",
         "updated_at": "2026-02-26T04:59:00.636Z"
-      },
-      {
-        "id": "7502cc11-39f4-4221-8895-f4ce15b2faca",
-        "name": "Sleeping Cloud",
-        "slug": "sleep-cloud-caravansari",
-        "code": "SLEEP_CLOUD_CARAVANSARI",
-        "default_description": "Caravansari for Pets and Travellers",
-        "default_tile_image_url": "http://localhost:4000/uploads/subgroups/tiles/sleep-cloud-caravansarai--tile--7502cc11-39f4-4221-8895---1771983505455.jpg",
-        "extension": "5632",
-        "default_cost_level": 2,
-        "created_at": "2026-02-24T01:17:32.563Z",
-        "updated_at": "2026-02-27T20:26:30.507Z"
       },
       {
         "id": "01f6dd71-9894-422b-b536-65f5eb536af1",
@@ -178,66 +182,6 @@
         "updated_at": "2026-02-26T04:58:17.806Z"
       },
       {
-        "id": "94626446-8364-4ace-b393-4073131bdfc8",
-        "name": "Soot & Cinder",
-        "slug": "soot-cinder",
-        "code": "SOOT_CINDER",
-        "default_description": "Fire Conclave",
-        "default_tile_image_url": "http://localhost:4000/uploads/subgroups/tiles/soot-cinder--tile--1771984545631.jpg",
-        "extension": null,
-        "default_cost_level": 4,
-        "created_at": "2026-02-25T01:56:14.358Z",
-        "updated_at": "2026-02-26T04:58:18.589Z"
-      },
-      {
-        "id": "f48bdfe3-1831-4a20-bc00-e592833a79d0",
-        "name": "Sacred-Sound Calm Cove",
-        "slug": "sacred-sound-calm-cove",
-        "code": "SACREDSOUND_CALM_COVE",
-        "default_description": "Calmness, Joy",
-        "default_tile_image_url": "http://localhost:4000/uploads/subgroups/tiles/sacred-sound-calm-cove--tile--1771988444973.png",
-        "extension": "2683",
-        "default_cost_level": 2,
-        "created_at": "2026-02-25T03:01:42.049Z",
-        "updated_at": "2026-02-26T04:58:19.606Z"
-      },
-      {
-        "id": "c6cab28a-24d0-4586-8e4c-184771ac628c",
-        "name": "Septic Care",
-        "slug": "septic-care",
-        "code": "SEPTIC_CARE",
-        "default_description": "Nobody cares more about your shit",
-        "default_tile_image_url": "http://localhost:4000/uploads/subgroups/tiles/septic-care--tile--1771988594709.jpg",
-        "extension": null,
-        "default_cost_level": 2,
-        "created_at": "2026-02-25T03:04:58.782Z",
-        "updated_at": "2026-02-25T03:25:46.709Z"
-      },
-      {
-        "id": "0b191b6f-340f-4fc2-bd4e-cc3657f7dea5",
-        "name": "Skyward Circus Company",
-        "slug": "skyward-circus-company",
-        "code": "SKYWARD_CIRCUS_COMPANY",
-        "default_description": "Fly Freaks Unite!",
-        "default_tile_image_url": "http://localhost:4000/uploads/subgroups/tiles/skyward-circus-company--tile--1771988874981.png",
-        "extension": "4759",
-        "default_cost_level": 3,
-        "created_at": "2026-02-25T03:08:06.249Z",
-        "updated_at": "2026-02-25T03:40:17.245Z"
-      },
-      {
-        "id": "0a9fdd99-5fa8-415c-a0d6-b15486f9ad03",
-        "name": "▨ ○ ○",
-        "slug": "subgroup",
-        "code": "SUBGROUP",
-        "default_description": "Music makes you lose control",
-        "default_tile_image_url": "http://localhost:4000/uploads/subgroups/tiles/image--tile--1771989025331.png",
-        "extension": "7200",
-        "default_cost_level": 3,
-        "created_at": "2026-02-25T03:10:38.881Z",
-        "updated_at": "2026-02-26T05:19:29.084Z"
-      },
-      {
         "id": "35edee35-3f94-435c-8cc1-aa8ac61328bb",
         "name": "Superb Craft Cocktails",
         "slug": "superb-craft-cocktails",
@@ -248,18 +192,6 @@
         "default_cost_level": 5,
         "created_at": "2026-02-25T03:12:01.065Z",
         "updated_at": "2026-02-25T03:40:35.978Z"
-      },
-      {
-        "id": "d8d481df-c5c7-4c76-b644-03d66f3f98ed",
-        "name": "Space Catering",
-        "slug": "space-catering",
-        "code": "SPACE_CATERING",
-        "default_description": "Eat and Be Merry",
-        "default_tile_image_url": "http://localhost:4000/uploads/subgroups/tiles/space-catering--tile--1771990046197.png",
-        "extension": null,
-        "default_cost_level": 0,
-        "created_at": "2026-02-25T03:35:07.513Z",
-        "updated_at": "2026-03-01T20:02:15.485Z"
       },
       {
         "id": "3c0e7430-2e94-49e7-8aaa-3803596c71ae",
@@ -274,18 +206,6 @@
         "updated_at": "2026-02-25T03:48:07.096Z"
       },
       {
-        "id": "758ced5a-818e-4de0-a7dc-4ba3d8f57ace",
-        "name": "Sexy Call Centerr",
-        "slug": "sexy-call-centerr-hop",
-        "code": "SEXY_CALL_CENTERR_HOP",
-        "default_description": "Ooh, la la la",
-        "default_tile_image_url": "http://localhost:4000/uploads/subgroups/tiles/sexy-call-center--tile--1772081716878.png",
-        "extension": null,
-        "default_cost_level": 2,
-        "created_at": "2026-02-26T05:01:00.903Z",
-        "updated_at": "2026-02-26T05:01:10.370Z"
-      },
-      {
         "id": "3a73fd8c-15a8-41c5-bd13-6feaea198741",
         "name": "▨ ○ ○",
         "slug": "subgroup-2",
@@ -298,16 +218,88 @@
         "updated_at": "2026-02-26T05:20:15.720Z"
       },
       {
+        "id": "879a5975-ed8f-4fc5-b6cc-192ebf856da8",
+        "name": "Secret Candy Cove",
+        "slug": "secret-candy-cove",
+        "code": "SECRET_CANDY_COVE",
+        "default_description": "Snacks, Candy & Concessions",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/secret-candy-cove--tile--879a5975-ed8f-4fc5-b6cc---1772744935638.webp",
+        "extension": null,
+        "default_cost_level": 6,
+        "created_at": "2026-02-25T03:49:41.015Z",
+        "updated_at": "2026-03-05T21:09:00.289Z"
+      },
+      {
+        "id": "94626446-8364-4ace-b393-4073131bdfc8",
+        "name": "Soot & Cinder",
+        "slug": "soot-cinder",
+        "code": "SOOT_CINDER",
+        "default_description": "Fire Conclave",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/soot-cinder--tile--94626446-8364-4ace-b393---1772745045058.webp",
+        "extension": "3473",
+        "default_cost_level": 4,
+        "created_at": "2026-02-25T01:56:14.358Z",
+        "updated_at": "2026-03-06T02:50:49.423Z"
+      },
+      {
+        "id": "d8d481df-c5c7-4c76-b644-03d66f3f98ed",
+        "name": "Space Catering",
+        "slug": "space-catering",
+        "code": "SPACE_CATERING",
+        "default_description": "🍳Feed and be fed. This is a consistent commitment involving pre-planning, food prep, transport, and tear-down, team coordination, respecting dietary needs, and managing finances   Daily commitments are mandatory during and before the burn.",
+        "default_tile_image_url": "/api/uploads/subgroups/tiles/space-catering--tile--1771990046197.png",
+        "extension": null,
+        "default_cost_level": 0,
+        "created_at": "2026-02-25T03:35:07.513Z",
+        "updated_at": "2026-03-05T22:16:27.705Z"
+      },
+      {
         "id": "c97b0278-c9f9-4b3a-b22c-a279d98bebf3",
         "name": "Sexy Call Center",
         "slug": "sexy-call-center",
         "code": "SEXY_CALL_CENTER",
         "default_description": "Yum!",
-        "default_tile_image_url": "/api/uploads/subgroups/tiles/sexy-call-center--tile--c97b0278-c9f9-4b3a-b22c---1772083408235.png",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/sexy-call-center--tile--c97b0278-c9f9-4b3a-b22c---1772744976459.webp",
         "extension": "6969",
         "default_cost_level": 2,
         "created_at": "2026-02-25T03:06:12.581Z",
-        "updated_at": "2026-03-05T04:40:33.730Z"
+        "updated_at": "2026-03-05T21:09:40.412Z"
+      },
+      {
+        "id": "758ced5a-818e-4de0-a7dc-4ba3d8f57ace",
+        "name": "Sexy Call Centerr",
+        "slug": "sexy-call-centerr-hop",
+        "code": "SEXY_CALL_CENTERR_HOP",
+        "default_description": "Ooh, la la la",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/sexy-call-centerr--tile--758ced5a-818e-4de0-a7dc---1772744995255.webp",
+        "extension": null,
+        "default_cost_level": 2,
+        "created_at": "2026-02-26T05:01:00.903Z",
+        "updated_at": "2026-03-05T21:09:56.514Z"
+      },
+      {
+        "id": "0a9fdd99-5fa8-415c-a0d6-b15486f9ad03",
+        "name": "▨ ○ ○",
+        "slug": "subgroup",
+        "code": "SUBGROUP",
+        "default_description": "Music makes you lose control",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/image--tile--0a9fdd99-5fa8-415c-a0d6---1772744867699.webp",
+        "extension": "7200",
+        "default_cost_level": 3,
+        "created_at": "2026-02-25T03:10:38.881Z",
+        "updated_at": "2026-03-05T21:07:50.379Z"
+      },
+      {
+        "id": "0b191b6f-340f-4fc2-bd4e-cc3657f7dea5",
+        "name": "Skyward Circus Company",
+        "slug": "skyward-circus-company",
+        "code": "SKYWARD_CIRCUS_COMPANY",
+        "default_description": "Fly Freaks Unite!",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/skyward-circus-company--tile--0b191b6f-340f-4fc2-bd4e---1772745005694.webp",
+        "extension": "4759",
+        "default_cost_level": 3,
+        "created_at": "2026-02-25T03:08:06.249Z",
+        "updated_at": "2026-03-05T21:10:06.810Z"
       },
       {
         "id": "4e9d5541-2650-4a6f-be26-a7a7e78064c2",
@@ -319,19 +311,43 @@
         "extension": null,
         "default_cost_level": 2,
         "created_at": "2026-02-24T05:34:24.556Z",
-        "updated_at": "2026-03-05T04:40:50.314Z"
+        "updated_at": "2026-03-05T05:52:47.216Z"
       },
       {
-        "id": "879a5975-ed8f-4fc5-b6cc-192ebf856da8",
-        "name": "Secret Candy Cove",
-        "slug": "secret-candy-cove",
-        "code": "SECRET_CANDY_COVE",
-        "default_description": "Snacks, Candy & Concessions",
-        "default_tile_image_url": "/api/uploads/subgroups/tiles/secret-candy-cove--tile--1771991354456.png",
-        "extension": null,
-        "default_cost_level": 6,
-        "created_at": "2026-02-25T03:49:41.015Z",
-        "updated_at": "2026-03-05T05:39:19.384Z"
+        "id": "7502cc11-39f4-4221-8895-f4ce15b2faca",
+        "name": "Sleeping Cloud",
+        "slug": "sleep-cloud-caravansari",
+        "code": "SLEEP_CLOUD_CARAVANSARI",
+        "default_description": "Caravansari for Pets and Travellers",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/sleeping-cloud--tile--7502cc11-39f4-4221-8895---1772745018690.webp",
+        "extension": "5632",
+        "default_cost_level": 2,
+        "created_at": "2026-02-24T01:17:32.563Z",
+        "updated_at": "2026-03-05T21:10:20.984Z"
+      },
+      {
+        "id": "81164308-d1f2-4611-852d-5066293c5b4c",
+        "name": "PERMORMER",
+        "slug": "comms",
+        "code": "COMMS",
+        "default_description": "This Capsule is Capped at Six Cadets, you will perform fire in the  Great Circle",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/soot-cinder--tile--81164308-d1f2-4611-852d---1772745037817.webp",
+        "extension": "3473",
+        "default_cost_level": 4,
+        "created_at": "2026-02-23T23:58:06.529Z",
+        "updated_at": "2026-03-06T03:25:14.859Z"
+      },
+      {
+        "id": "f48bdfe3-1831-4a20-bc00-e592833a79d0",
+        "name": "Sacred  Calm Cove",
+        "slug": "sacred-sound-calm-cove",
+        "code": "SACREDSOUND_CALM_COVE",
+        "default_description": "This capsule is full you can subscribe to hear about events, or to reach out about hosting",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/sacred-sound-calm-cove--tile--f48bdfe3-1831-4a20-bc00---1772744780957.webp",
+        "extension": "2683",
+        "default_cost_level": 1,
+        "created_at": "2026-02-25T03:01:42.049Z",
+        "updated_at": "2026-03-06T00:47:55.332Z"
       },
       {
         "id": "59d46d2c-2f8d-40d2-8f91-9540c3188a1a",
@@ -339,11 +355,11 @@
         "slug": "safety-care-center",
         "code": "SAFETY_CARE_CENTER",
         "default_description": "Burner Care",
-        "default_tile_image_url": "/api/uploads/subgroups/tiles/safety-care-center--tile--59d46d2c-2f8d-40d2-8f91---1771983582507.jpg",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/safety-care-center--tile--59d46d2c-2f8d-40d2-8f91---1772744903391.webp",
         "extension": null,
         "default_cost_level": 2,
         "created_at": "2026-02-24T05:37:29.919Z",
-        "updated_at": "2026-03-05T05:39:27.069Z"
+        "updated_at": "2026-03-05T21:08:25.256Z"
       },
       {
         "id": "95e077ad-4e88-46a4-8b5b-cb9909adf156",
@@ -351,30 +367,38 @@
         "slug": "sassy-cyber-circus",
         "code": "SASSY_CYBER_CIRCUS",
         "default_description": "Circus",
-        "default_tile_image_url": "/api/uploads/subgroups/tiles/sassy-cyber-circus--tile--95e077ad-4e88-46a4-8b5b---1771983535281.jpg",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/sassy-cyber-circus--tile--95e077ad-4e88-46a4-8b5b---1772744919197.webp",
         "extension": "7277",
         "default_cost_level": 6,
         "created_at": "2026-02-24T02:58:58.848Z",
-        "updated_at": "2026-03-05T05:39:30.451Z"
+        "updated_at": "2026-03-05T21:08:40.668Z"
+      },
+      {
+        "id": "c6cab28a-24d0-4586-8e4c-184771ac628c",
+        "name": "Septic Care",
+        "slug": "septic-care",
+        "code": "SEPTIC_CARE",
+        "default_description": "💩 We get our shit done early. Duties: are shit-posting by pre-record video ads for bathrooms. Seeks: Actors, Skit writers;”pre-event\" work ethic. Light duties during burn.",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/septic-care--tile--c6cab28a-24d0-4586-8e4c---1772744966452.webp",
+        "extension": null,
+        "default_cost_level": 2,
+        "created_at": "2026-02-25T03:04:58.782Z",
+        "updated_at": "2026-03-05T21:35:14.779Z"
+      },
+      {
+        "id": "52f07c19-a3c3-4e08-90d3-7d29bf4eb9ed",
+        "name": "SAFETY CREW",
+        "slug": "soot-cinder-2",
+        "code": "SOOT_CINDER_2",
+        "default_description": "SAFETY CREW you will be responsible for the Safety of Cadets, this Capsule is Capped at 2",
+        "default_tile_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/tiles/soot-cinder--tile--1772765394415.webp",
+        "extension": "3473",
+        "default_cost_level": 2,
+        "created_at": "2026-03-06T02:50:31.986Z",
+        "updated_at": "2026-03-06T03:25:02.680Z"
       }
     ],
     "cruise_subgroups": [
-      {
-        "id": "0ec5b014-f678-41aa-902c-be4c021bf5c4",
-        "cruise_id": "12573979-29c2-4136-b2eb-0f4d65290130",
-        "subgroup_id": "81164308-d1f2-4611-852d-5066293c5b4c",
-        "override_name": null,
-        "override_description": null,
-        "detail_image_url": "http://localhost:4000/uploads/subgroups/posters/soot-cinder-burning-man--poster--81164308-d1f2-4611-852d---1771911181994.jpg",
-        "cost_level_override": null,
-        "visibility_state": "inactive",
-        "dock_visible": true,
-        "map_x": 79.62,
-        "map_y": 41.26,
-        "map_scale": 1,
-        "created_at": "2026-02-23T23:58:06.529Z",
-        "updated_at": "2026-02-26T04:59:11.749Z"
-      },
       {
         "id": "aa4c0b95-312f-4e6b-ae9f-da6edfe14b40",
         "cruise_id": "12573979-29c2-4136-b2eb-0f4d65290130",
@@ -390,22 +414,6 @@
         "map_scale": 1,
         "created_at": "2026-02-24T01:56:01.284Z",
         "updated_at": "2026-02-26T04:58:40.207Z"
-      },
-      {
-        "id": "0f29f7f9-2395-4134-a4f7-6be79b771307",
-        "cruise_id": "50c6aa9d-d367-4176-a0ef-6c30a0efd4ad",
-        "subgroup_id": "758ced5a-818e-4de0-a7dc-4ba3d8f57ace",
-        "override_name": "Sexy Call Centerr HOP",
-        "override_description": "Ooh, la la la",
-        "detail_image_url": "http://localhost:4000/uploads/subgroups/posters/sexy-call-center--poster--1772081772176.jpg",
-        "cost_level_override": null,
-        "visibility_state": "inactive",
-        "dock_visible": true,
-        "map_x": null,
-        "map_y": null,
-        "map_scale": 1,
-        "created_at": "2026-02-26T05:01:00.985Z",
-        "updated_at": "2026-02-26T05:01:10.456Z"
       },
       {
         "id": "e5f81512-a07f-4de0-9f17-acc3b923e03c",
@@ -424,20 +432,20 @@
         "updated_at": "2026-02-26T05:20:15.811Z"
       },
       {
-        "id": "0c30f2c4-500a-4eb9-9c3a-53db63345579",
-        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
-        "subgroup_id": "4e9d5541-2650-4a6f-be26-a7a7e78064c2",
-        "override_name": "Super Charge Crystal",
-        "override_description": "Unhinged Power",
-        "detail_image_url": "http://192.168.1.225:4000/api/uploads/subgroups/posters/super-charge-crystal-that-thing-at-the-cabin--poster--4e9d5541-2650-4a6f-be26---1772685648502.jpg",
+        "id": "0ec5b014-f678-41aa-902c-be4c021bf5c4",
+        "cruise_id": "12573979-29c2-4136-b2eb-0f4d65290130",
+        "subgroup_id": "81164308-d1f2-4611-852d-5066293c5b4c",
+        "override_name": "PERMORMER",
+        "override_description": "This Capsule is Capped at Six Cadets, you will perform fire in the  Great Circle",
+        "detail_image_url": "/api/uploads/subgroups/posters/soot-cinder-burning-man--poster--81164308-d1f2-4611-852d---1771911181994.jpg",
         "cost_level_override": null,
-        "visibility_state": "active",
-        "dock_visible": false,
-        "map_x": 68.24,
-        "map_y": 54.13,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": 79.62,
+        "map_y": 41.26,
         "map_scale": 1,
-        "created_at": "2026-02-24T05:34:24.619Z",
-        "updated_at": "2026-03-05T04:40:50.528Z"
+        "created_at": "2026-02-23T23:58:06.529Z",
+        "updated_at": "2026-03-06T03:25:15.001Z"
       },
       {
         "id": "ce1bb3c8-b702-4331-8041-e840348eb801",
@@ -453,7 +461,7 @@
         "map_y": null,
         "map_scale": 1,
         "created_at": "2026-02-24T00:21:28.219Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
+        "updated_at": "2026-03-05T16:01:45.241Z"
       },
       {
         "id": "912e5cc8-fc40-4dc5-87ad-dd166eb0ce7b",
@@ -469,23 +477,7 @@
         "map_y": null,
         "map_scale": 1,
         "created_at": "2026-02-24T00:24:13.427Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
-      },
-      {
-        "id": "7695c0fd-777f-4eae-b9aa-27497fac383a",
-        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
-        "subgroup_id": "7502cc11-39f4-4221-8895-f4ce15b2faca",
-        "override_name": "Sleep Cloud Caravansari",
-        "override_description": "Caravansari for Pets and Travellers",
-        "detail_image_url": "http://localhost:4000/uploads/subgroups/posters/sleeping-cloud-that-thing-at-the-cabin--poster--7502cc11-39f4-4221-8895---1772223982912.jpg",
-        "cost_level_override": null,
-        "visibility_state": "active",
-        "dock_visible": false,
-        "map_x": 35.87,
-        "map_y": 54.02,
-        "map_scale": 1,
-        "created_at": "2026-02-24T01:17:32.594Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
+        "updated_at": "2026-03-05T16:01:45.241Z"
       },
       {
         "id": "43ac00d9-7a25-40fc-ba52-c72bc4d3adf9",
@@ -501,7 +493,87 @@
         "map_y": null,
         "map_scale": 1,
         "created_at": "2026-02-24T04:52:45.613Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
+        "updated_at": "2026-03-05T16:01:45.241Z"
+      },
+      {
+        "id": "42b11a0a-884e-47e9-a4b8-7a6b31147af0",
+        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroup_id": "59d46d2c-2f8d-40d2-8f91-9540c3188a1a",
+        "override_name": "Safety Care Center",
+        "override_description": "Burner Care",
+        "detail_image_url": "/api/uploads/subgroups/posters/safety-care-center--poster--1771911448413.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-02-24T05:37:29.966Z",
+        "updated_at": "2026-03-05T21:08:25.428Z"
+      },
+      {
+        "id": "20a0a586-9f1f-4d3e-83cf-a45e66447424",
+        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroup_id": "95e077ad-4e88-46a4-8b5b-cb9909adf156",
+        "override_name": "Sassy Cyber Circus",
+        "override_description": "Circus",
+        "detail_image_url": "/api/uploads/subgroups/posters/sassy-cyber-circus--poster--1771901927969.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-02-24T02:58:58.903Z",
+        "updated_at": "2026-03-05T21:08:41.053Z"
+      },
+      {
+        "id": "0c30f2c4-500a-4eb9-9c3a-53db63345579",
+        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroup_id": "4e9d5541-2650-4a6f-be26-a7a7e78064c2",
+        "override_name": "Super Charge Crystal",
+        "override_description": "Unhinged Power",
+        "detail_image_url": "http://192.168.1.225:4000/api/uploads/subgroups/posters/super-charge-crystal-that-thing-at-the-cabin--poster--4e9d5541-2650-4a6f-be26---1772685648502.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-02-24T05:34:24.619Z",
+        "updated_at": "2026-03-05T16:01:45.241Z"
+      },
+      {
+        "id": "0f29f7f9-2395-4134-a4f7-6be79b771307",
+        "cruise_id": "50c6aa9d-d367-4176-a0ef-6c30a0efd4ad",
+        "subgroup_id": "758ced5a-818e-4de0-a7dc-4ba3d8f57ace",
+        "override_name": "Sexy Call Centerr",
+        "override_description": "Ooh, la la la",
+        "detail_image_url": "/api/uploads/subgroups/posters/sexy-call-center--poster--1772081772176.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-02-26T05:01:00.985Z",
+        "updated_at": "2026-03-05T21:09:56.718Z"
+      },
+      {
+        "id": "7695c0fd-777f-4eae-b9aa-27497fac383a",
+        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroup_id": "7502cc11-39f4-4221-8895-f4ce15b2faca",
+        "override_name": "Sleeping Cloud",
+        "override_description": "Caravansari for Pets and Travellers",
+        "detail_image_url": "/api/uploads/subgroups/posters/sleeping-cloud-that-thing-at-the-cabin--poster--7502cc11-39f4-4221-8895---1772223982912.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-02-24T01:17:32.594Z",
+        "updated_at": "2026-03-05T21:10:21.158Z"
       },
       {
         "id": "de356663-a8bb-41ab-b169-bb0db564f2b0",
@@ -517,111 +589,15 @@
         "map_y": null,
         "map_scale": 1,
         "created_at": "2026-02-25T01:52:21.895Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
-      },
-      {
-        "id": "42b11a0a-884e-47e9-a4b8-7a6b31147af0",
-        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
-        "subgroup_id": "59d46d2c-2f8d-40d2-8f91-9540c3188a1a",
-        "override_name": "Safety Care Center",
-        "override_description": "Burner Care",
-        "detail_image_url": "/api/uploads/subgroups/posters/safety-care-center--poster--1771911448413.jpg",
-        "cost_level_override": null,
-        "visibility_state": "active",
-        "dock_visible": false,
-        "map_x": 24.74,
-        "map_y": 62.11,
-        "map_scale": 1,
-        "created_at": "2026-02-24T05:37:29.966Z",
-        "updated_at": "2026-03-05T05:39:27.308Z"
-      },
-      {
-        "id": "20a0a586-9f1f-4d3e-83cf-a45e66447424",
-        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
-        "subgroup_id": "95e077ad-4e88-46a4-8b5b-cb9909adf156",
-        "override_name": "Sassy Cyber Circus",
-        "override_description": "Circus",
-        "detail_image_url": "/api/uploads/subgroups/posters/sassy-cyber-circus--poster--1771901927969.jpg",
-        "cost_level_override": null,
-        "visibility_state": "inactive",
-        "dock_visible": true,
-        "map_x": 53.87,
-        "map_y": 43.32,
-        "map_scale": 1,
-        "created_at": "2026-02-24T02:58:58.903Z",
-        "updated_at": "2026-03-05T05:39:31.294Z"
-      },
-      {
-        "id": "e42df121-778b-4d6b-b368-fb3ee5c813ee",
-        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
-        "subgroup_id": "94626446-8364-4ace-b393-4073131bdfc8",
-        "override_name": "Soot & Cinder",
-        "override_description": "Fire Conclave",
-        "detail_image_url": "http://localhost:4000/uploads/subgroups/posters/soot-cinder--poster--1771984564013.jpg",
-        "cost_level_override": null,
-        "visibility_state": "inactive",
-        "dock_visible": true,
-        "map_x": null,
-        "map_y": null,
-        "map_scale": 1,
-        "created_at": "2026-02-25T01:56:14.425Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
-      },
-      {
-        "id": "d7844515-a5da-431d-b123-b81910687448",
-        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
-        "subgroup_id": "f48bdfe3-1831-4a20-bc00-e592833a79d0",
-        "override_name": "Sacred-Sound Calm Cove",
-        "override_description": "Calmness, Joy",
-        "detail_image_url": "http://localhost:4000/uploads/subgroups/posters/sacred-sound-calm-cove--poster--1771988497412.jpg",
-        "cost_level_override": null,
-        "visibility_state": "inactive",
-        "dock_visible": true,
-        "map_x": null,
-        "map_y": null,
-        "map_scale": 1,
-        "created_at": "2026-02-25T03:01:42.121Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
-      },
-      {
-        "id": "16fa14eb-f980-4211-a5f8-95a03bbbe466",
-        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
-        "subgroup_id": "c6cab28a-24d0-4586-8e4c-184771ac628c",
-        "override_name": "Septic Care",
-        "override_description": "Nobody cares more about your shit",
-        "detail_image_url": "http://localhost:4000/uploads/subgroups/posters/septic-care--poster--1771988697612.png",
-        "cost_level_override": null,
-        "visibility_state": "inactive",
-        "dock_visible": true,
-        "map_x": null,
-        "map_y": null,
-        "map_scale": 1,
-        "created_at": "2026-02-25T03:04:58.858Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
-      },
-      {
-        "id": "22f266ff-aa79-4380-8e21-f4e6efa77bdf",
-        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
-        "subgroup_id": "0b191b6f-340f-4fc2-bd4e-cc3657f7dea5",
-        "override_name": "Skyward Circus Company",
-        "override_description": "Fly Freaks Unite!",
-        "detail_image_url": "http://localhost:4000/uploads/subgroups/posters/skyward-circus-company--poster--1771988884434.jpg",
-        "cost_level_override": null,
-        "visibility_state": "inactive",
-        "dock_visible": true,
-        "map_x": null,
-        "map_y": null,
-        "map_scale": 1,
-        "created_at": "2026-02-25T03:08:06.327Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
+        "updated_at": "2026-03-05T16:01:45.241Z"
       },
       {
         "id": "6e17058f-060d-48b7-bfde-76eff4e07b44",
         "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
         "subgroup_id": "0a9fdd99-5fa8-415c-a0d6-b15486f9ad03",
-        "override_name": "□ ○ ○",
+        "override_name": "▨ ○ ○",
         "override_description": "Music makes you lose control",
-        "detail_image_url": "http://localhost:4000/uploads/subgroups/posters/image--poster--1771989036954.jpg",
+        "detail_image_url": "/api/uploads/subgroups/posters/image--poster--1771989036954.jpg",
         "cost_level_override": null,
         "visibility_state": "inactive",
         "dock_visible": true,
@@ -629,7 +605,135 @@
         "map_y": null,
         "map_scale": 1,
         "created_at": "2026-02-25T03:10:38.964Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
+        "updated_at": "2026-03-05T21:07:50.665Z"
+      },
+      {
+        "id": "16fa14eb-f980-4211-a5f8-95a03bbbe466",
+        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroup_id": "c6cab28a-24d0-4586-8e4c-184771ac628c",
+        "override_name": "Septic Care",
+        "override_description": "💩 We get our shit done early. Duties: are shit-posting by pre-record video ads for bathrooms. Seeks: Actors, Skit writers;”pre-event\" work ethic. Light duties during burn.",
+        "detail_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/posters/septic-care-that-thing-at-the-cabin--poster--c6cab28a-24d0-4586-8e4c---1772746352323.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-02-25T03:04:58.858Z",
+        "updated_at": "2026-03-05T21:35:14.912Z"
+      },
+      {
+        "id": "25ab467b-85ae-4689-b1a6-bcfa878e447d",
+        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroup_id": "879a5975-ed8f-4fc5-b6cc-192ebf856da8",
+        "override_name": "Secret Candy Cove",
+        "override_description": "Snacks, Candy & Concessions",
+        "detail_image_url": "/api/uploads/subgroups/posters/secret-candy-cove--poster--1771991371577.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-02-25T03:49:41.099Z",
+        "updated_at": "2026-03-05T21:09:00.789Z"
+      },
+      {
+        "id": "66ca55e3-8154-436f-8b7f-2d90b9540275",
+        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroup_id": "c97b0278-c9f9-4b3a-b22c-a279d98bebf3",
+        "override_name": "Sexy Call Center",
+        "override_description": "Yum!",
+        "detail_image_url": "/api/uploads/subgroups/posters/sexy-call-center--poster--1771988771419.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-02-25T03:06:12.657Z",
+        "updated_at": "2026-03-05T21:09:40.661Z"
+      },
+      {
+        "id": "22f266ff-aa79-4380-8e21-f4e6efa77bdf",
+        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroup_id": "0b191b6f-340f-4fc2-bd4e-cc3657f7dea5",
+        "override_name": "Skyward Circus Company",
+        "override_description": "Fly Freaks Unite!",
+        "detail_image_url": "/api/uploads/subgroups/posters/skyward-circus-company--poster--1771988884434.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-02-25T03:08:06.327Z",
+        "updated_at": "2026-03-05T21:10:07.062Z"
+      },
+      {
+        "id": "46bbc9b4-c0ba-4037-8020-19519dedfbcc",
+        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroup_id": "d8d481df-c5c7-4c76-b644-03d66f3f98ed",
+        "override_name": "Space Catering",
+        "override_description": "🍳Feed and be fed. This is a consistent commitment involving pre-planning, food prep, transport, and tear-down, team coordination, respecting dietary needs, and managing finances   Daily commitments are mandatory during and before the burn.",
+        "detail_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/posters/space-catering-that-thing-at-the-cabin--poster--d8d481df-c5c7-4c76-b644---1772748958055.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-02-25T03:35:07.600Z",
+        "updated_at": "2026-03-05T22:16:27.849Z"
+      },
+      {
+        "id": "d7844515-a5da-431d-b123-b81910687448",
+        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroup_id": "f48bdfe3-1831-4a20-bc00-e592833a79d0",
+        "override_name": "Sacred  Calm Cove",
+        "override_description": "This capsule is full you can subscribe to hear about events, or to reach out about hosting",
+        "detail_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/posters/sacred-sound-calm-cove-that-thing-at-the-cabin--poster--f48bdfe3-1831-4a20-bc00---1772758055185.jpg",
+        "cost_level_override": null,
+        "visibility_state": "active",
+        "dock_visible": false,
+        "map_x": 89.98,
+        "map_y": 43.92,
+        "map_scale": 1,
+        "created_at": "2026-02-25T03:01:42.121Z",
+        "updated_at": "2026-03-06T00:47:56.400Z"
+      },
+      {
+        "id": "e42df121-778b-4d6b-b368-fb3ee5c813ee",
+        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
+        "subgroup_id": "94626446-8364-4ace-b393-4073131bdfc8",
+        "override_name": "Soot & Cinder",
+        "override_description": "Fire Conclave",
+        "detail_image_url": "/api/uploads/subgroups/posters/soot-cinder--poster--1771984564013.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-02-25T01:56:14.425Z",
+        "updated_at": "2026-03-06T02:50:49.824Z"
+      },
+      {
+        "id": "99e77258-0227-46d0-92ce-3336c86378a7",
+        "cruise_id": "12573979-29c2-4136-b2eb-0f4d65290130",
+        "subgroup_id": "52f07c19-a3c3-4e08-90d3-7d29bf4eb9ed",
+        "override_name": "SAFETY CREW",
+        "override_description": "SAFETY CREW you will be responsible for the Safety of Cadets, this Capsule is Capped at 2",
+        "detail_image_url": "https://api.plugin2oneroom.com/api/uploads/subgroups/posters/soot-cinder--poster--1772765409278.jpg",
+        "cost_level_override": null,
+        "visibility_state": "inactive",
+        "dock_visible": true,
+        "map_x": null,
+        "map_y": null,
+        "map_scale": 1,
+        "created_at": "2026-03-06T02:50:32.487Z",
+        "updated_at": "2026-03-06T03:25:02.825Z"
       },
       {
         "id": "1650e467-f4d2-4803-b5d3-6e6a69b260f8",
@@ -645,23 +749,7 @@
         "map_y": null,
         "map_scale": 1,
         "created_at": "2026-02-25T03:12:01.104Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
-      },
-      {
-        "id": "46bbc9b4-c0ba-4037-8020-19519dedfbcc",
-        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
-        "subgroup_id": "d8d481df-c5c7-4c76-b644-03d66f3f98ed",
-        "override_name": "Space Catering",
-        "override_description": "Eat and Be Merry",
-        "detail_image_url": "http://localhost:4000/uploads/subgroups/posters/space-catering--poster--1771990505883.png",
-        "cost_level_override": null,
-        "visibility_state": "active",
-        "dock_visible": false,
-        "map_x": 50.85,
-        "map_y": 74.9,
-        "map_scale": 1,
-        "created_at": "2026-02-25T03:35:07.600Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
+        "updated_at": "2026-03-05T16:01:45.241Z"
       },
       {
         "id": "05880452-7853-40f0-986b-f7729a45327a",
@@ -677,39 +765,7 @@
         "map_y": null,
         "map_scale": 1,
         "created_at": "2026-02-25T03:48:07.177Z",
-        "updated_at": "2026-03-05T04:40:21.292Z"
-      },
-      {
-        "id": "66ca55e3-8154-436f-8b7f-2d90b9540275",
-        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
-        "subgroup_id": "c97b0278-c9f9-4b3a-b22c-a279d98bebf3",
-        "override_name": "Sexy Call Center",
-        "override_description": "Yum!",
-        "detail_image_url": "/api/uploads/subgroups/posters/sexy-call-center--poster--1771988771419.jpg",
-        "cost_level_override": null,
-        "visibility_state": "active",
-        "dock_visible": false,
-        "map_x": null,
-        "map_y": null,
-        "map_scale": 1,
-        "created_at": "2026-02-25T03:06:12.657Z",
-        "updated_at": "2026-03-05T04:40:34.163Z"
-      },
-      {
-        "id": "25ab467b-85ae-4689-b1a6-bcfa878e447d",
-        "cruise_id": "b25e7896-17a2-40dd-91dc-030c1351cf2b",
-        "subgroup_id": "879a5975-ed8f-4fc5-b6cc-192ebf856da8",
-        "override_name": "Secret Candy Cove",
-        "override_description": "Snacks, Candy & Concessions",
-        "detail_image_url": "/api/uploads/subgroups/posters/secret-candy-cove--poster--1771991371577.jpg",
-        "cost_level_override": null,
-        "visibility_state": "active",
-        "dock_visible": false,
-        "map_x": null,
-        "map_y": null,
-        "map_scale": 1,
-        "created_at": "2026-02-25T03:49:41.099Z",
-        "updated_at": "2026-03-05T05:39:19.636Z"
+        "updated_at": "2026-03-05T16:01:45.241Z"
       }
     ],
     "badges": [
@@ -735,16 +791,6 @@
         "withdrawn_at": null,
         "completed_at": null,
         "updated_at": "2026-02-26T05:11:26.173Z"
-      },
-      {
-        "id": "f75bf0f6-7557-46ff-ad40-d4ca83394082",
-        "user_id": "8a78b3c4-a41c-4367-a69b-c032a15ab362",
-        "cruise_subgroup_id": "7695c0fd-777f-4eae-b9aa-27497fac383a",
-        "status": "committed",
-        "committed_at": "2026-02-27T20:26:54.887Z",
-        "withdrawn_at": null,
-        "completed_at": null,
-        "updated_at": "2026-02-27T20:26:54.887Z"
       },
       {
         "id": "ca3a4d92-2210-4613-8a61-bbd64878a1cd",
@@ -785,6 +831,56 @@
         "withdrawn_at": "2026-03-05T05:38:56.960Z",
         "completed_at": null,
         "updated_at": "2026-03-05T05:38:56.960Z"
+      },
+      {
+        "id": "6e37e409-5b07-468d-b702-15762f7bf28d",
+        "user_id": "d7a3cfd2-1816-4333-97cd-0ccbcbd646e7",
+        "cruise_subgroup_id": "d7844515-a5da-431d-b123-b81910687448",
+        "status": "committed",
+        "committed_at": "2026-03-05T23:57:02.136Z",
+        "withdrawn_at": null,
+        "completed_at": null,
+        "updated_at": "2026-03-05T23:57:02.136Z"
+      },
+      {
+        "id": "f75bf0f6-7557-46ff-ad40-d4ca83394082",
+        "user_id": "8a78b3c4-a41c-4367-a69b-c032a15ab362",
+        "cruise_subgroup_id": "7695c0fd-777f-4eae-b9aa-27497fac383a",
+        "status": "committed",
+        "committed_at": "2026-02-27T20:26:54.887Z",
+        "withdrawn_at": null,
+        "completed_at": null,
+        "updated_at": "2026-03-06T00:52:03.780Z"
+      },
+      {
+        "id": "afd2672a-c5a6-485c-b0e2-52ec0f67ea47",
+        "user_id": "8a78b3c4-a41c-4367-a69b-c032a15ab362",
+        "cruise_subgroup_id": "d7844515-a5da-431d-b123-b81910687448",
+        "status": "committed",
+        "committed_at": "2026-03-06T00:52:42.168Z",
+        "withdrawn_at": null,
+        "completed_at": null,
+        "updated_at": "2026-03-06T00:52:42.168Z"
+      },
+      {
+        "id": "6126f194-f942-47a6-97cb-eafabc8d1ccb",
+        "user_id": "611076a7-baa0-450b-a758-71af6a1723d2",
+        "cruise_subgroup_id": "20a0a586-9f1f-4d3e-83cf-a45e66447424",
+        "status": "committed",
+        "committed_at": "2026-03-06T02:51:49.620Z",
+        "withdrawn_at": null,
+        "completed_at": null,
+        "updated_at": "2026-03-06T02:51:49.620Z"
+      },
+      {
+        "id": "3fcc7cff-dc8d-4621-ac0c-7cf9a93a24ca",
+        "user_id": "611076a7-baa0-450b-a758-71af6a1723d2",
+        "cruise_subgroup_id": "0ec5b014-f678-41aa-902c-be4c021bf5c4",
+        "status": "committed",
+        "committed_at": "2026-03-06T02:53:01.354Z",
+        "withdrawn_at": null,
+        "completed_at": null,
+        "updated_at": "2026-03-06T02:53:01.354Z"
       }
     ]
   }

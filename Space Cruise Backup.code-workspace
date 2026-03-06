@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"path": "../../../Users/synergycreativescoalition/space-case-cruises/backups"
+		},
+		{
+			"path": "../../../Users/synergycreativescoalition/space-case-cruises/dist"
+		},
+		{
+			"path": "../../../Users/synergycreativescoalition/space-case-cruises/docs"
+		},
+		{
+			"path": "../../../Users/synergycreativescoalition/space-case-cruises/node_modules"
+		},
+		{
+			"path": "../../../Users/synergycreativescoalition/space-case-cruises/src"
+		},
+		{
+			"path": "../../../Users/synergycreativescoalition/space-case-cruises/ui"
+		},
+		{
+			"path": "../../../Users/synergycreativescoalition/space-case-cruises/uploads"
+		}
+	],
+	"settings": {}
+}

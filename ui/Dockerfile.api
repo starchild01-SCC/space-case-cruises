@@ -4,8 +4,7 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
-# FIX: Manually copy JSON and data since tsc skips them
-COPY firebase-service-account.json ./dist/
+# FIX: Manually copy data since tsc skips it
 COPY src/data ./dist/data
 
 FROM node:20-alpine

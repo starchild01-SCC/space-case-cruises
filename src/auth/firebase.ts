@@ -1,7 +1,5 @@
 import { initializeApp, cert, type App } from "firebase-admin/app";
 import { getAuth, type Auth } from "firebase-admin/auth";
-import { existsSync, readFileSync } from "fs";
-import { basename, resolve } from "node:path";
 import { env } from "../config/env.js";
 
 export interface FirebaseIdentity {
@@ -25,48 +23,35 @@ export const getAuthMode = (): "firebase" | "supabase" | "header-sim" => {
   return "header-sim";
 };
 
-// Initialize Firebase Admin
+// Initialize Firebase Admin from env vars (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY)
+// or from FIREBASE_SERVICE_ACCOUNT JSON string (legacy)
 if (isFirebaseConfigured) {
   try {
-    // Support both service account file path and inline JSON
-    let serviceAccount: unknown;
-    
-    if (env.firebaseServiceAccount) {
-      // Check if it's likely a file path (starts with . or /, or ends with .json)
-      const looksLikePath =
-        env.firebaseServiceAccount.startsWith(".") ||
-        env.firebaseServiceAccount.startsWith("/") ||
-        env.firebaseServiceAccount.endsWith(".json");
+    let credential: { projectId: string; clientEmail: string; privateKey: string } | undefined;
 
-      if (looksLikePath) {
-        const configured = env.firebaseServiceAccount;
-        const fileName = basename(configured);
-        const candidates = [
-          configured,
-          resolve(process.cwd(), configured),
-          resolve(process.cwd(), fileName),
-          resolve(process.cwd(), "dist", fileName),
-          "/app/firebase-service-account.json",
-          "/app/dist/firebase-service-account.json",
-        ];
-
-        const selectedPath = candidates.find((candidate) => existsSync(candidate));
-        if (!selectedPath) {
-          throw new Error(
-            `FIREBASE_SERVICE_ACCOUNT file not found. Tried: ${candidates.join(", ")}`,
-          );
-        }
-
-        const fileContent = readFileSync(selectedPath, "utf-8");
-        serviceAccount = JSON.parse(fileContent);
-      } else {
-        // Parse as JSON string
-        serviceAccount = JSON.parse(env.firebaseServiceAccount);
+    if (env.firebaseClientEmail && env.firebasePrivateKey) {
+      credential = {
+        projectId: env.firebaseProjectId!,
+        clientEmail: env.firebaseClientEmail,
+        privateKey: env.firebasePrivateKey.replace(/\\n/g, "\n"),
+      };
+    } else if (env.firebaseServiceAccount) {
+      const parsed = JSON.parse(env.firebaseServiceAccount) as {
+        project_id?: string;
+        client_email?: string;
+        private_key?: string;
+      };
+      if (parsed.project_id && parsed.client_email && parsed.private_key) {
+        credential = {
+          projectId: parsed.project_id,
+          clientEmail: parsed.client_email,
+          privateKey: String(parsed.private_key).replace(/\\n/g, "\n"),
+        };
       }
     }
 
     firebaseApp = initializeApp({
-      credential: serviceAccount ? cert(serviceAccount as Record<string, unknown>) : undefined,
+      credential: credential ? cert(credential) : undefined,
       projectId: env.firebaseProjectId ?? undefined,
     });
 

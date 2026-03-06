@@ -32,7 +32,9 @@ export const env = {
   rateLimitMax: parseNumber(process.env.RATE_LIMIT_MAX, 120),
   rateLimitAuthWindowMs: parseNumber(process.env.RATE_LIMIT_AUTH_WINDOW_MS, 15 * 60 * 1000),
   rateLimitAuthMax: parseNumber(process.env.RATE_LIMIT_AUTH_MAX, 20),
-  // Firebase config
+  // Firebase config (env vars for Render etc.; FIREBASE_SERVICE_ACCOUNT JSON string for legacy)
   firebaseProjectId: process.env.FIREBASE_PROJECT_ID?.trim() || null,
+  firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL?.trim() || null,
+  firebasePrivateKey: process.env.FIREBASE_PRIVATE_KEY?.trim() || null,
   firebaseServiceAccount: process.env.FIREBASE_SERVICE_ACCOUNT?.trim() || null,
 };

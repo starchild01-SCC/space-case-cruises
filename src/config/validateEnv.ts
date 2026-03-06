@@ -1,7 +1,16 @@
 import { env } from "./env.js";
 
+// When Firebase is used in production, require either env vars or service account JSON
+const firebaseCredsOk =
+  !env.firebaseProjectId ||
+  (env.firebaseClientEmail && env.firebasePrivateKey) ||
+  Boolean(env.firebaseServiceAccount?.trim());
+
 const required: { key: string; value: string | null }[] = [
-  { key: "FIREBASE_SERVICE_ACCOUNT", value: env.firebaseServiceAccount },
+  {
+    key: "FIREBASE (FIREBASE_PROJECT_ID + FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY or FIREBASE_SERVICE_ACCOUNT)",
+    value: firebaseCredsOk ? "ok" : null,
+  },
 ];
 // Note: DATABASE_URL is optional. If not set, the app runs in in-memory mode.
 

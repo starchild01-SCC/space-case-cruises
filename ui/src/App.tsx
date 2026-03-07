@@ -1875,7 +1875,7 @@ function App() {
       }
 
       setAdminMessage("Map layout saved.");
-      await load();
+      await load({ bustCache: true });
     } catch (error) {
       setAdminMessage((error as Error).message);
     }
@@ -1895,7 +1895,7 @@ function App() {
         throw new Error(message || `Failed to remove (${response.status})`);
       }
       setAdminMessage("Subgroup removed from cruise.");
-      await load();
+      await load({ bustCache: true });
     } catch (error) {
       setAdminMessage((error as Error).message);
     } finally {
@@ -1931,7 +1931,7 @@ function App() {
       }
       setAddSubgroupToCruiseCatalogId("");
       setAdminMessage("Subgroup added to cruise.");
-      await load();
+      await load({ bustCache: true });
     } catch (error) {
       setAdminMessage((error as Error).message);
     } finally {
@@ -1984,7 +1984,7 @@ function App() {
         throw new Error(message || `Failed to save (${response.status})`);
       }
       setAdminMessage("Assignment saved.");
-      await load();
+      await load({ bustCache: true });
     } catch (error) {
       setAdminMessage((error as Error).message);
     } finally {
@@ -2398,7 +2398,7 @@ function App() {
       }
 
       setAdminMessage("Subgroup saved.");
-      await load();
+      await load({ bustCache: true });
     } catch (error) {
       setAdminMessage((error as Error).message);
     } finally {
@@ -2479,7 +2479,7 @@ function App() {
       setNewSubgroup(emptySubgroupDraft());
       setNewSubgroupPosterUrl("");
       setAdminMessage("Subgroup created with auto-generated page + map tile setup.");
-      await load();
+      await load({ bustCache: true });
     } catch (error) {
       setAdminMessage((error as Error).message);
     } finally {

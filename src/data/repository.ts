@@ -440,6 +440,23 @@ export const updateCruise = async (
   return updatedResult;
 };
 
+export const deleteCruiseSubgroup = async (cruiseSubgroupId: string): Promise<boolean> => {
+  if (!isDatabaseEnabled || !pool) {
+    const deleted = memory.deleteCruiseSubgroup(cruiseSubgroupId);
+    if (deleted) {
+      void writeBackupSnapshot("deleteCruiseSubgroup:memory");
+    }
+    return deleted;
+  }
+
+  const result = await pool.query("delete from cruise_subgroups where id = $1", [cruiseSubgroupId]);
+  const deleted = (result.rowCount ?? 0) > 0;
+  if (deleted) {
+    void writeBackupSnapshot("deleteCruiseSubgroup:postgres");
+  }
+  return deleted;
+};
+
 export const listSubgroups = async (): Promise<Subgroup[]> => {
   if (!isDatabaseEnabled || !pool) {
     return memory.listSubgroups();

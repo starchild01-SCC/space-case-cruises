@@ -884,6 +884,9 @@ function App() {
   });
   const [editingCadets, setEditingCadets] = useState<Record<string, EditableCadetAdmin>>({});
   const [savingCadetId, setSavingCadetId] = useState<string | null>(null);
+  const [removingCruiseSubgroupId, setRemovingCruiseSubgroupId] = useState<string | null>(null);
+  const [addingSubgroupToCruise, setAddingSubgroupToCruise] = useState<boolean>(false);
+  const [addSubgroupToCruiseCatalogId, setAddSubgroupToCruiseCatalogId] = useState<string>("");
 
   const [state, setState] = useState<ApiState>({
     authMode: "unknown",
@@ -1863,6 +1866,64 @@ function App() {
       await load();
     } catch (error) {
       setAdminMessage((error as Error).message);
+    }
+  };
+
+  const removeCruiseSubgroupFromCruise = async (cruiseSubgroupId: string): Promise<void> => {
+    setRemovingCruiseSubgroupId(cruiseSubgroupId);
+    setAdminMessage(null);
+    try {
+      const response = await fetch(apiPath(`/admin/cruise-subgroups/${cruiseSubgroupId}`), {
+        method: "DELETE",
+        headers: authHeaders,
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        const message = (payload as { error?: { message?: string } })?.error?.message;
+        throw new Error(message || `Failed to remove (${response.status})`);
+      }
+      setAdminMessage("Subgroup removed from cruise.");
+      await load();
+    } catch (error) {
+      setAdminMessage((error as Error).message);
+    } finally {
+      setRemovingCruiseSubgroupId(null);
+    }
+  };
+
+  const addSubgroupToCruise = async (): Promise<void> => {
+    if (!selectedCruiseDependencyId || !addSubgroupToCruiseCatalogId) {
+      setAdminMessage("Select a cruise and a subgroup to add.");
+      return;
+    }
+    setAddingSubgroupToCruise(true);
+    setAdminMessage(null);
+    try {
+      const response = await fetch(
+        apiPath(`/admin/cruises/${selectedCruiseDependencyId}/subgroups`),
+        {
+          method: "POST",
+          headers: jsonHeaders,
+          body: JSON.stringify({
+            subgroup_id: addSubgroupToCruiseCatalogId,
+            visibility_state: "inactive",
+            dock_visible: true,
+            map_scale: 1,
+          }),
+        },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        const message = (payload as { error?: { message?: string } })?.error?.message;
+        throw new Error(message || `Failed to add subgroup (${response.status})`);
+      }
+      setAddSubgroupToCruiseCatalogId("");
+      setAdminMessage("Subgroup added to cruise.");
+      await load();
+    } catch (error) {
+      setAdminMessage((error as Error).message);
+    } finally {
+      setAddingSubgroupToCruise(false);
     }
   };
 
@@ -3526,6 +3587,91 @@ function App() {
           </section>
 
           <section className="panel admin-table-panel">
+            <h2>Subgroups on cruise (cruise_subgroups)</h2>
+            <div className="toolbar-row">
+              <label>
+                Cruise
+                <select
+                  className="table-input"
+                  value={selectedCruiseDependencyId}
+                  onChange={(e) => setSelectedCruiseDependencyId(e.target.value)}
+                >
+                  {cruises.map((cruise) => (
+                    <option key={cruise.id} value={cruise.id}>
+                      {cruise.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <span className="muted small">Same data as Cruise Map. Add creates a row in cruise_subgroups; Remove deletes it.</span>
+            </div>
+            <div className="table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Subgroup</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cruiseSubgroupsForSelectedCruise.map((assignment) => {
+                    const subgroup = subgroupById.get(assignment.subgroup_id);
+                    const name = assignment.override_name?.trim() || subgroup?.name || assignment.subgroup_id;
+                    return (
+                      <tr key={assignment.id}>
+                        <td>{name}</td>
+                        <td>{assignment.visibility_state}</td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => void removeCruiseSubgroupFromCruise(assignment.id)}
+                            disabled={removingCruiseSubgroupId === assignment.id}
+                          >
+                            {removingCruiseSubgroupId === assignment.id ? "Removing..." : "Remove"}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr>
+                    <td colSpan={2}>
+                      <select
+                        className="table-input"
+                        value={addSubgroupToCruiseCatalogId}
+                        onChange={(e) => setAddSubgroupToCruiseCatalogId(e.target.value)}
+                      >
+                        <option value="">— Add subgroup —</option>
+                        {subgroups
+                          .filter(
+                            (s) =>
+                              !cruiseSubgroupsForSelectedCruise.some(
+                                (a) => a.subgroup_id === s.id,
+                              ),
+                          )
+                          .map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.name}
+                            </option>
+                          ))}
+                      </select>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => void addSubgroupToCruise()}
+                        disabled={addingSubgroupToCruise || !addSubgroupToCruiseCatalogId || !selectedCruiseDependencyId}
+                      >
+                        {addingSubgroupToCruise ? "Adding..." : "Add to cruise"}
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="panel admin-table-panel">
             <h2>Unified Subgroup Editor</h2>
             <div className="toolbar-row">
               <span className="muted small">Each row can be assigned to an active cruise.</span>
@@ -3891,41 +4037,43 @@ function App() {
                     className="map-canvas"
                     style={selectedCruise?.map_image_url ? { backgroundImage: `url(${resolveMediaUrl(selectedCruise.map_image_url)})` } : undefined}
                   >
-                    {subgroups.map((subgroup) => {
-                      const dependencyDraft =
-                        editingCruiseDependencies[subgroup.id] ?? emptyCruiseDependencyDraft();
-                      if (dependencyDraft.visibility_state !== "active") {
-                        return null;
-                      }
-
-                      const iconUrl =
-                        editingSubgroups[subgroup.id]?.default_tile_image_url || subgroup.default_tile_image_url;
-                      if (!iconUrl) {
-                        return null;
-                      }
-
-                      const x = Number.parseFloat(dependencyDraft.map_x || "0");
-                      const y = Number.parseFloat(dependencyDraft.map_y || "0");
-                      const scale = Number.parseFloat(dependencyDraft.map_scale || "1") || 1;
-
-                      return (
-                        <img
-                          key={`map-${subgroup.id}`}
-                          className="map-tile"
-                          src={resolveMediaUrl(iconUrl)}
-                          alt={subgroup.name}
-                          draggable
-                          onDragEnd={(event) =>
-                            handleMapTileDragEnd(subgroup.id, event.clientX, event.clientY)
-                          }
-                          style={{
-                            left: `${x}%`,
-                            top: `${y}%`,
-                            transform: `translate(-50%, -50%) scale(${scale})`,
-                          }}
-                        />
-                      );
-                    })}
+                    {cruiseSubgroupsForSelectedCruise
+                      .filter((assignment) => {
+                        const dependencyDraft =
+                          editingCruiseDependencies[assignment.subgroup_id] ??
+                          toEditableCruiseSubgroup(assignment);
+                        return dependencyDraft.visibility_state === "active";
+                      })
+                      .map((assignment) => {
+                        const subgroup = subgroupById.get(assignment.subgroup_id);
+                        if (!subgroup) return null;
+                        const dependencyDraft =
+                          editingCruiseDependencies[assignment.subgroup_id] ??
+                          toEditableCruiseSubgroup(assignment);
+                        const iconUrl =
+                          editingSubgroups[subgroup.id]?.default_tile_image_url || subgroup.default_tile_image_url;
+                        if (!iconUrl) return null;
+                        const x = Number.parseFloat(dependencyDraft.map_x || "0");
+                        const y = Number.parseFloat(dependencyDraft.map_y || "0");
+                        const scale = Number.parseFloat(dependencyDraft.map_scale || "1") || 1;
+                        return (
+                          <img
+                            key={`map-${assignment.id}`}
+                            className="map-tile"
+                            src={resolveMediaUrl(iconUrl)}
+                            alt={subgroup.name}
+                            draggable
+                            onDragEnd={(event) =>
+                              handleMapTileDragEnd(assignment.subgroup_id, event.clientX, event.clientY)
+                            }
+                            style={{
+                              left: `${x}%`,
+                              top: `${y}%`,
+                              transform: `translate(-50%, -50%) scale(${scale})`,
+                            }}
+                          />
+                        );
+                      })}
                   </div>
                 </div>
                 <button onClick={() => void saveMapLayoutForSelectedCruise()}>Save Map Layout</button>

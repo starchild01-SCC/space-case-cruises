@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   createCruiseSubgroup,
   cruiseSubgroupPairExists,
+  deleteCruiseSubgroup,
   findCruiseById,
   findCruiseSubgroupById,
   findCruiseSubgroupBySubgroupId,
@@ -286,5 +287,23 @@ cruiseSubgroupsRouter.patch(
     }));
 
     response.json(await serializeAssignment(request, updated!));
+  },
+);
+
+cruiseSubgroupsRouter.delete(
+  "/admin/cruise-subgroups/:id",
+  requireAuth,
+  requireRole(["admin"]),
+  async (request, response) => {
+    const { id } = assignmentIdParamSchema.parse(request.params);
+    const existing = await findCruiseSubgroupById(id);
+    if (!existing) {
+      throw new HttpError(404, "NOT_FOUND", "Cruise subgroup not found");
+    }
+    const deleted = await deleteCruiseSubgroup(id);
+    if (!deleted) {
+      throw new HttpError(404, "NOT_FOUND", "Cruise subgroup not found");
+    }
+    response.status(204).send();
   },
 );

@@ -625,6 +625,13 @@ export const updateCruiseSubgroup = (
   return cruiseSubgroups[index];
 };
 
+export const deleteCruiseSubgroup = (cruiseSubgroupId: string): boolean => {
+  const index = cruiseSubgroups.findIndex((a) => a.id === cruiseSubgroupId);
+  if (index === -1) return false;
+  cruiseSubgroups.splice(index, 1);
+  return true;
+};
+
 export const resolveCruiseSubgroupVisibility = (
   cruise: Cruise,
   desiredState: TileVisibilityState,

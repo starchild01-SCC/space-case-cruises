@@ -573,9 +573,14 @@ export const listCruiseSubgroups = async (cruiseIdValue: string): Promise<Cruise
     return memory.listCruiseSubgroups(cruiseIdValue);
   }
 
-  const result = await pool.query("select * from cruise_subgroups where cruise_id = $1 order by created_at asc", [
-    cruiseIdValue,
-  ]);
+  const result = await pool.query(
+    `select cs.*
+     from cruise_subgroups cs
+     join subgroups s on s.id = cs.subgroup_id
+     where cs.cruise_id = $1
+     order by cs.created_at asc`,
+    [cruiseIdValue],
+  );
   return result.rows.map(mapCruiseSubgroup);
 };
 

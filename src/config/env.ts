@@ -24,6 +24,10 @@ export const env = {
   databaseUrl: process.env.DATABASE_URL?.trim() || null,
   supabaseUrl: process.env.SUPABASE_URL?.trim() || null,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY?.trim() || null,
+  /** Service role key for server-side Storage uploads (create objects in bucket) */
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || null,
+  /** Storage bucket name for uploads (default: uploads) */
+  supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET?.trim() || "uploads",
   useSupabaseAuth: process.env.USE_SUPABASE_AUTH === "true",
   allowHeaderAuth: parseBoolean(process.env.ALLOW_HEADER_AUTH, process.env.NODE_ENV !== "production"),
   corsAllowedOrigins: process.env.CORS_ALLOWED_ORIGINS?.split(",").map((origin) => origin.trim()).filter(Boolean) ?? [],

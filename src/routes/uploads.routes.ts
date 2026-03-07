@@ -1,10 +1,14 @@
 import { extname, resolve } from "node:path";
-import { mkdirSync, readdirSync } from "node:fs";
+import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import multer from "multer";
 import { Router } from "express";
 import { z } from "zod";
 import { requireAuth } from "../middleware/auth.js";
 import { HttpError } from "../middleware/errors.js";
+import {
+  isSupabaseStorageEnabled,
+  uploadToSupabaseStorage,
+} from "../storage/supabase-storage.js";
 
 const uploadTypeSchema = z.object({
   type: z.enum(["subgroup-tile", "subgroup-poster", "cruise-map", "cruise-special", "cadet-avatar"]),
@@ -143,37 +147,25 @@ export const findClosestUploadFileUrl = (
   return `/uploads/${subdir}/${best.fileName}`;
 };
 
-const storage = multer.diskStorage({
-  destination: (request, _file, callback) => {
-    const parsed = uploadTypeSchema.safeParse(request.query);
-    if (!parsed.success) {
-      callback(new HttpError(422, "VALIDATION_ERROR", "Invalid upload type", []), "");
-      return;
-    }
+/** Generate storage path and filename for an upload (same shape as before for compatibility). */
+function getRelativePathAndFilename(
+  parsed: z.infer<typeof uploadTypeSchema>,
+  originalName: string,
+): { relativePath: string; filename: string } {
+  const extension = extname(originalName).toLowerCase() || ".jpg";
+  const nameSlug = toSlug(parsed.name ?? parsed.type);
+  const suffix = imageSuffixByType[parsed.type];
+  const ref = safeRef(parsed.ref);
+  const timestamp = Date.now();
+  const parts = [nameSlug, suffix, ref, String(timestamp)].filter(Boolean);
+  const filename = `${parts.join("--")}${extension}`;
+  const subdir = uploadSubdirectoryByType[parsed.type];
+  return { relativePath: `${subdir}/${filename}`, filename };
+}
 
-    const destination = resolve(uploadsRootDir, uploadSubdirectoryByType[parsed.data.type]);
-    mkdirSync(destination, { recursive: true });
-    callback(null, destination);
-  },
-  filename: (_request, file, callback) => {
-    const parsed = uploadTypeSchema.safeParse(_request.query);
-    const extension = extname(file.originalname).toLowerCase() || ".jpg";
-    if (!parsed.success) {
-      callback(null, `image-${Date.now()}${extension}`);
-      return;
-    }
-
-    const nameSlug = toSlug(parsed.data.name ?? parsed.data.type);
-    const suffix = imageSuffixByType[parsed.data.type];
-    const ref = safeRef(parsed.data.ref);
-    const timestamp = Date.now();
-    const parts = [nameSlug, suffix, ref, String(timestamp)].filter(Boolean);
-    callback(null, `${parts.join("--")}${extension}`);
-  },
-});
-
+const memoryStorage = multer.memoryStorage();
 const upload = multer({
-  storage,
+  storage: memoryStorage,
   limits: {
     fileSize: 8 * 1024 * 1024,
     files: 1,
@@ -207,19 +199,38 @@ uploadsRouter.post(
     next();
   },
   upload.single("image"),
-  (request, response) => {
+  async (request, response) => {
     const parsed = uploadTypeSchema.parse(request.query);
 
-    if (!request.file) {
+    if (!request.file || !request.file.buffer) {
       throw new HttpError(400, "VALIDATION_ERROR", "Missing image file");
     }
 
-    const relativePath = `${uploadSubdirectoryByType[parsed.type]}/${request.file.filename}`;
+    const { relativePath, filename } = getRelativePathAndFilename(
+      parsed,
+      request.file.originalname || "image.jpg",
+    );
+
+    let url: string;
+    if (isSupabaseStorageEnabled()) {
+      const result = await uploadToSupabaseStorage(
+        relativePath,
+        request.file.buffer,
+        request.file.mimetype,
+      );
+      url = result.publicUrl;
+    } else {
+      const absolutePath = resolve(uploadsRootDir, relativePath);
+      mkdirSync(resolve(uploadsRootDir, uploadSubdirectoryByType[parsed.type]), { recursive: true });
+      writeFileSync(absolutePath, request.file.buffer);
+      url = `/api/uploads/${relativePath}`;
+    }
+
     response.status(201).json({
       type: parsed.type,
-      file_name: request.file.filename,
+      file_name: filename,
       relative_path: relativePath,
-      url: `/api/uploads/${relativePath}`,
+      url,
     });
   },
 );
@@ -242,19 +253,37 @@ uploadsRouter.post(
     next();
   },
   upload.single("image"),
-  (request, response) => {
+  async (request, response) => {
     const parsed = uploadTypeSchema.parse(request.query);
 
-    if (!request.file) {
+    if (!request.file || !request.file.buffer) {
       throw new HttpError(400, "VALIDATION_ERROR", "Missing image file");
     }
 
-    const relativePath = `${uploadSubdirectoryByType[parsed.type]}/${request.file.filename}`;
+    const { relativePath, filename } = getRelativePathAndFilename(
+      parsed,
+      request.file.originalname || "image.jpg",
+    );
+
+    let url: string;
+    if (isSupabaseStorageEnabled()) {
+      const result = await uploadToSupabaseStorage(
+        relativePath,
+        request.file.buffer,
+        request.file.mimetype,
+      );
+      url = result.publicUrl;
+    } else {
+      mkdirSync(resolve(uploadsRootDir, uploadSubdirectoryByType[parsed.type]), { recursive: true });
+      writeFileSync(resolve(uploadsRootDir, relativePath), request.file.buffer);
+      url = `/api/uploads/${relativePath}`;
+    }
+
     response.status(201).json({
       type: parsed.type,
-      file_name: request.file.filename,
+      file_name: filename,
       relative_path: relativePath,
-      url: `/api/uploads/${relativePath}`,
+      url,
     });
   },
 );

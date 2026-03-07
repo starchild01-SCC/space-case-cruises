@@ -553,8 +553,8 @@ const toEditableCruise = (cruise: CruiseItem): EditableCruise => ({
   name: cruise.name,
   year: String(cruise.year),
   location: cruise.location ?? "",
-  starts_on: cruise.starts_on ?? "",
-  ends_on: cruise.ends_on ?? "",
+  starts_on: cruise.starts_on ? cruise.starts_on.split("T")[0] : "",
+  ends_on: cruise.ends_on ? cruise.ends_on.split("T")[0] : "",
   map_image_url: cruise.map_image_url ?? "",
   special_page_image_url: cruise.special_page_image_url ?? "",
   casting_cost: cruise.casting_cost === null ? "" : String(cruise.casting_cost),
@@ -885,6 +885,7 @@ function App() {
   const [editingCadets, setEditingCadets] = useState<Record<string, EditableCadetAdmin>>({});
   const [savingCadetId, setSavingCadetId] = useState<string | null>(null);
   const [removingCruiseSubgroupId, setRemovingCruiseSubgroupId] = useState<string | null>(null);
+  const [savingCruiseSubgroupAssignmentId, setSavingCruiseSubgroupAssignmentId] = useState<string | null>(null);
   const [addingSubgroupToCruise, setAddingSubgroupToCruise] = useState<boolean>(false);
   const [addSubgroupToCruiseCatalogId, setAddSubgroupToCruiseCatalogId] = useState<string>("");
 
@@ -1924,6 +1925,59 @@ function App() {
       setAdminMessage((error as Error).message);
     } finally {
       setAddingSubgroupToCruise(false);
+    }
+  };
+
+  const saveCruiseSubgroupAssignment = async (assignmentId: string): Promise<void> => {
+    const assignment = cruiseSubgroups.find((a) => a.id === assignmentId);
+    if (!assignment || !selectedCruiseDependencyId || assignment.cruise_id !== selectedCruiseDependencyId) {
+      setAdminMessage("Assignment not found for this cruise.");
+      return;
+    }
+    const dependencyDraft = getSubgroupCruiseDependencyDraft(assignment.subgroup_id, selectedCruiseDependencyId);
+    const costLevelOverride = parseNullableNumber(dependencyDraft.cost_level_override);
+    const mapX = parseNullableNumber(dependencyDraft.map_x);
+    const mapY = parseNullableNumber(dependencyDraft.map_y);
+    const mapScale = parseNullableNumber(dependencyDraft.map_scale);
+    if (
+      Number.isNaN(costLevelOverride) ||
+      Number.isNaN(mapX) ||
+      Number.isNaN(mapY) ||
+      Number.isNaN(mapScale) ||
+      mapScale === null
+    ) {
+      setAdminMessage("Invalid map or challenge values.");
+      return;
+    }
+    setSavingCruiseSubgroupAssignmentId(assignmentId);
+    setAdminMessage(null);
+    try {
+      const response = await fetch(apiPath(`/admin/cruise-subgroups/${assignmentId}`), {
+        method: "PATCH",
+        headers: jsonHeaders,
+        body: JSON.stringify({
+          override_name: (dependencyDraft.override_name ?? "").trim() || null,
+          override_description: (dependencyDraft.override_description ?? "").trim() || null,
+          detail_image_url: (dependencyDraft.detail_image_url ?? "").trim() || null,
+          cost_level_override: costLevelOverride,
+          visibility_state: dependencyDraft.visibility_state,
+          dock_visible: dockVisibleForVisibilityState(dependencyDraft.visibility_state),
+          map_x: mapX,
+          map_y: mapY,
+          map_scale: mapScale,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        const message = (payload as { error?: { message?: string } })?.error?.message;
+        throw new Error(message || `Failed to save (${response.status})`);
+      }
+      setAdminMessage("Assignment saved.");
+      await load();
+    } catch (error) {
+      setAdminMessage((error as Error).message);
+    } finally {
+      setSavingCruiseSubgroupAssignmentId(null);
     }
   };
 
@@ -3587,7 +3641,7 @@ function App() {
           </section>
 
           <section className="panel admin-table-panel">
-            <h2>Subgroups on cruise (cruise_subgroups)</h2>
+            <h2>Unified Subgroup Editor</h2>
             <div className="toolbar-row">
               <label>
                 Cruise
@@ -3603,13 +3657,17 @@ function App() {
                   ))}
                 </select>
               </label>
-              <span className="muted small">Same data as Cruise Map. Add creates a row in cruise_subgroups; Remove deletes it.</span>
+              <span className="muted small">Same data as Cruise Map. All edits save to cruise_subgroups (bridge).</span>
             </div>
             <div className="table-wrap">
               <table className="admin-table">
                 <thead>
                   <tr>
                     <th>Subgroup</th>
+                    <th>Override name</th>
+                    <th>Override description</th>
+                    <th>Poster</th>
+                    <th>Challenge</th>
                     <th>Status</th>
                     <th>Action</th>
                   </tr>
@@ -3617,12 +3675,123 @@ function App() {
                 <tbody>
                   {cruiseSubgroupsForSelectedCruise.map((assignment) => {
                     const subgroup = subgroupById.get(assignment.subgroup_id);
-                    const name = assignment.override_name?.trim() || subgroup?.name || assignment.subgroup_id;
+                    const catalogName = subgroup?.name ?? assignment.subgroup_id;
+                    const dependencyDraft = getSubgroupCruiseDependencyDraft(
+                      assignment.subgroup_id,
+                      selectedCruiseDependencyId,
+                    );
+                    const rowError = validateCruiseSubgroupDraft(dependencyDraft, {
+                      requireCruiseId: true,
+                      cruiseId: selectedCruiseDependencyId,
+                    });
                     return (
                       <tr key={assignment.id}>
-                        <td>{name}</td>
-                        <td>{assignment.visibility_state}</td>
+                        <td className="muted small">{catalogName}</td>
                         <td>
+                          <input
+                            className="table-input"
+                            value={dependencyDraft.override_name ?? ""}
+                            onChange={(e) =>
+                              updateSubgroupCruiseDependencyDraft(
+                                assignment.subgroup_id,
+                                selectedCruiseDependencyId,
+                                "override_name",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Override name"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="table-input"
+                            value={dependencyDraft.override_description ?? ""}
+                            onChange={(e) =>
+                              updateSubgroupCruiseDependencyDraft(
+                                assignment.subgroup_id,
+                                selectedCruiseDependencyId,
+                                "override_description",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="Override description"
+                          />
+                        </td>
+                        <td>
+                          {dependencyDraft.detail_image_url ? (
+                            <img
+                              className="thumb"
+                              src={resolveMediaUrl(dependencyDraft.detail_image_url)}
+                              alt="Poster"
+                            />
+                          ) : (
+                            <span className="muted">none</span>
+                          )}
+                          <label className="upload-label">
+                            <input
+                              className="table-input"
+                              type="file"
+                              accept="image/*"
+                              onChange={(event) => {
+                                const file = event.target.files?.[0];
+                                if (!file) return;
+                                void uploadSubgroupPosterForCruise(
+                                  assignment.subgroup_id,
+                                  selectedCruiseDependencyId,
+                                  file,
+                                );
+                                event.currentTarget.value = "";
+                              }}
+                            />
+                          </label>
+                          {uploadingKey === `subgroup-poster-${assignment.subgroup_id}-${selectedCruiseDependencyId}` ? (
+                            <span className="muted small">Uploading...</span>
+                          ) : null}
+                        </td>
+                        <td>
+                          <input
+                            className="table-input"
+                            type="number"
+                            min={0}
+                            max={8}
+                            value={dependencyDraft.cost_level_override ?? ""}
+                            onChange={(e) =>
+                              updateSubgroupCruiseDependencyDraft(
+                                assignment.subgroup_id,
+                                selectedCruiseDependencyId,
+                                "cost_level_override",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="0–8"
+                          />
+                        </td>
+                        <td>
+                          <select
+                            className="table-input"
+                            value={dependencyDraft.visibility_state}
+                            onChange={(e) =>
+                              updateSubgroupCruiseDependencyDraft(
+                                assignment.subgroup_id,
+                                selectedCruiseDependencyId,
+                                "visibility_state",
+                                e.target.value as "invisible" | "inactive" | "active",
+                              )
+                            }
+                          >
+                            <option value="active">active</option>
+                            <option value="inactive">inactive</option>
+                            <option value="invisible">hidden</option>
+                          </select>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => void saveCruiseSubgroupAssignment(assignment.id)}
+                            disabled={savingCruiseSubgroupAssignmentId === assignment.id || !!rowError}
+                          >
+                            {savingCruiseSubgroupAssignmentId === assignment.id ? "Saving..." : "Save"}
+                          </button>
                           <button
                             type="button"
                             onClick={() => void removeCruiseSubgroupFromCruise(assignment.id)}
@@ -3630,10 +3799,12 @@ function App() {
                           >
                             {removingCruiseSubgroupId === assignment.id ? "Removing..." : "Remove"}
                           </button>
+                          {rowError ? <div className="error-inline small">{rowError}</div> : null}
                         </td>
                       </tr>
                     );
                   })}
+
                   <tr>
                     <td colSpan={2}>
                       <select
@@ -3641,7 +3812,7 @@ function App() {
                         value={addSubgroupToCruiseCatalogId}
                         onChange={(e) => setAddSubgroupToCruiseCatalogId(e.target.value)}
                       >
-                        <option value="">— Add subgroup —</option>
+                        <option value="">— Add subgroup to cruise —</option>
                         {subgroups
                           .filter(
                             (s) =>
@@ -3656,227 +3827,21 @@ function App() {
                           ))}
                       </select>
                     </td>
+                    <td colSpan={3} />
                     <td>
                       <button
                         type="button"
                         onClick={() => void addSubgroupToCruise()}
-                        disabled={addingSubgroupToCruise || !addSubgroupToCruiseCatalogId || !selectedCruiseDependencyId}
+                        disabled={
+                          addingSubgroupToCruise ||
+                          !addSubgroupToCruiseCatalogId ||
+                          !selectedCruiseDependencyId
+                        }
                       >
                         {addingSubgroupToCruise ? "Adding..." : "Add to cruise"}
                       </button>
                     </td>
                   </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section className="panel admin-table-panel">
-            <h2>Unified Subgroup Editor</h2>
-            <div className="toolbar-row">
-              <span className="muted small">Each row can be assigned to an active cruise.</span>
-            </div>
-            <div className="table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Cruise</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Map Icon</th>
-                    <th>Icon Upload</th>
-                    <th>Icon Preview</th>
-                    <th>Page Poster</th>
-                    <th>Poster Upload</th>
-                    <th>Poster Preview</th>
-                    <th>Phone Ext</th>
-                    <th>Challenge</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subgroups.map((subgroup) => {
-                    const draft = editingSubgroups[subgroup.id] ?? toEditableSubgroup(subgroup);
-                    const selectedCruiseIdForSubgroup = subgroupCruiseSelection[subgroup.id] ?? "";
-                    const selectedCruiseNameForSubgroup =
-                      activeCruises.find((cruise) => cruise.id === selectedCruiseIdForSubgroup)?.name ??
-                      "No active cruise selected";
-                    const dependencyDraft = selectedCruiseIdForSubgroup
-                      ? getSubgroupCruiseDependencyDraft(subgroup.id, selectedCruiseIdForSubgroup)
-                      : emptyCruiseDependencyDraft();
-                    const rowError = validateSubgroupDraft(draft);
-                    const rowDependencyError = validateCruiseSubgroupDraft(dependencyDraft, {
-                      requireCruiseId: true,
-                      cruiseId: selectedCruiseIdForSubgroup,
-                    });
-
-                    return (
-                      <tr key={subgroup.id}>
-                        <td>
-                          <select
-                            className="table-input"
-                            value={selectedCruiseIdForSubgroup}
-                            onChange={(event) =>
-                              setSubgroupCruiseSelection((current) => ({
-                                ...current,
-                                [subgroup.id]: event.target.value,
-                              }))
-                            }
-                          >
-                            {activeCruises.map((cruise) => (
-                              <option key={cruise.id} value={cruise.id}>
-                                {cruise.name}
-                              </option>
-                            ))}
-                          </select>
-                          <div className={`${selectedCruiseIdForSubgroup ? "ok" : "error"} small`}>
-                            Selected: {selectedCruiseNameForSubgroup}
-                          </div>
-                        </td>
-                        <td>
-                          <input
-                            className="table-input"
-                            value={draft.name}
-                            onChange={(event) =>
-                              updateSubgroupDraft(subgroup.id, "name", event.target.value)
-                            }
-                          />
-                        </td>
-                        <td>
-                          <input
-                            className="table-input"
-                            value={draft.default_description}
-                            onChange={(event) =>
-                              updateSubgroupDraft(
-                                subgroup.id,
-                                "default_description",
-                                event.target.value,
-                              )
-                            }
-                          />
-                        </td>
-                        <td>{draft.default_tile_image_url ? <span className="muted small">uploaded</span> : <span className="muted">none</span>}</td>
-                        <td>
-                          <label className="upload-label">
-                            <input
-                              className="table-input"
-                              type="file"
-                              accept="image/*"
-                              onChange={(event) => {
-                                const file = event.target.files?.[0];
-                                if (!file) {
-                                  return;
-                                }
-                                void uploadSubgroupTile(subgroup.id, file);
-                                event.currentTarget.value = "";
-                              }}
-                            />
-                          </label>
-                          <div className="muted small">
-                            {uploadingKey === `subgroup-tile-${subgroup.id}` ? "Uploading..." : ""}
-                          </div>
-                        </td>
-                        <td>
-                          {draft.default_tile_image_url ? (
-                            <img className="thumb" src={resolveMediaUrl(draft.default_tile_image_url)} alt="Subgroup icon" />
-                          ) : (
-                            <span className="muted">none</span>
-                          )}
-                        </td>
-                        <td>{dependencyDraft.detail_image_url ? <span className="muted small">uploaded</span> : <span className="muted">none</span>}</td>
-                        <td>
-                          <label className="upload-label">
-                            <input
-                              className="table-input"
-                              type="file"
-                              accept="image/*"
-                              onChange={(event) => {
-                                const file = event.target.files?.[0];
-                                if (!file) {
-                                  return;
-                                }
-                                if (!selectedCruiseIdForSubgroup) {
-                                  setAdminMessage("Select an active cruise for this subgroup first.");
-                                  return;
-                                }
-                                void uploadSubgroupPosterForCruise(
-                                  subgroup.id,
-                                  selectedCruiseIdForSubgroup,
-                                  file,
-                                );
-                                event.currentTarget.value = "";
-                              }}
-                            />
-                          </label>
-                          <div className="muted small">
-                            {uploadingKey === `subgroup-poster-${subgroup.id}-${selectedCruiseIdForSubgroup}`
-                              ? "Uploading..."
-                              : ""}
-                          </div>
-                        </td>
-                        <td>
-                          {dependencyDraft.detail_image_url ? (
-                            <img className="thumb" src={resolveMediaUrl(dependencyDraft.detail_image_url)} alt="Subgroup page poster" />
-                          ) : (
-                            <span className="muted">none</span>
-                          )}
-                        </td>
-                        <td>
-                          <input
-                            className="table-input"
-                            value={draft.extension}
-                            onChange={(event) =>
-                              updateSubgroupDraft(subgroup.id, "extension", event.target.value)
-                            }
-                          />
-                        </td>
-                        <td>
-                          <input
-                            className="table-input"
-                            value={draft.default_cost_level}
-                            onChange={(event) =>
-                              updateSubgroupDraft(
-                                subgroup.id,
-                                "default_cost_level",
-                                event.target.value,
-                              )
-                            }
-                          />
-                        </td>
-                        <td>
-                          <select
-                            className="table-input"
-                            value={dependencyDraft.visibility_state}
-                            onChange={(event) =>
-                              updateSubgroupCruiseDependencyDraft(
-                                subgroup.id,
-                                selectedCruiseIdForSubgroup,
-                                "visibility_state",
-                                event.target.value as "invisible" | "inactive" | "active",
-                              )
-                            }
-                          >
-                            <option value="active">active</option>
-                            <option value="inactive">inactive</option>
-                            <option value="invisible">hidden</option>
-                          </select>
-                        </td>
-                        <td>
-                          <button
-                            onClick={() => void saveSubgroup(subgroup.id)}
-                            disabled={savingSubgroupId === subgroup.id || !!rowError || !!rowDependencyError}
-                          >
-                            {savingSubgroupId === subgroup.id ? "Saving..." : "Save"}
-                          </button>
-                          {rowError ? <div className="error-inline small">{rowError}</div> : null}
-                          {rowDependencyError ? (
-                            <div className="error-inline small">{rowDependencyError}</div>
-                          ) : null}
-                        </td>
-                      </tr>
-                    );
-                  })}
 
                   <tr>
                     <td>

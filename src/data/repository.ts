@@ -663,11 +663,12 @@ export const updateCruiseSubgroup = async (
   const updated = updater(existing);
   const result = await pool.query(
     `update cruise_subgroups
-     set override_name=$2, override_description=$3, detail_image_url=$4, cost_level_override=$5,
-         visibility_state=$6, dock_visible=$7, map_x=$8, map_y=$9, map_scale=$10, updated_at=now()
+     set cruise_id=$2, override_name=$3, override_description=$4, detail_image_url=$5, cost_level_override=$6,
+         visibility_state=$7, dock_visible=$8, map_x=$9, map_y=$10, map_scale=$11, updated_at=now()
      where id = $1 returning *`,
     [
       cruiseSubgroupId,
+      updated.cruiseId,
       updated.overrideName,
       updated.overrideDescription,
       updated.detailImageUrl,

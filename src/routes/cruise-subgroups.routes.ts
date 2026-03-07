@@ -35,6 +35,7 @@ const assignmentCreateSchema = z
 
 const assignmentPatchSchema = z
   .object({
+    cruise_id: z.string().uuid().optional(),
     override_name: z.string().trim().min(1).max(120).optional().nullable(),
     override_description: z.string().trim().optional().nullable(),
     detail_image_url: z.string().optional().nullable(),
@@ -220,9 +221,23 @@ cruiseSubgroupsRouter.patch(
       throw new HttpError(404, "NOT_FOUND", "Cruise subgroup not found");
     }
 
-    const cruise = await findCruiseById(existing.cruiseId);
+    let cruise = await findCruiseById(existing.cruiseId);
     if (!cruise) {
       throw new HttpError(404, "NOT_FOUND", "Cruise not found");
+    }
+
+    const nextCruiseId = payload.cruise_id !== undefined ? payload.cruise_id : existing.cruiseId;
+    if (nextCruiseId !== existing.cruiseId) {
+      const newCruise = await findCruiseById(nextCruiseId);
+      if (!newCruise) {
+        throw new HttpError(404, "NOT_FOUND", "Target cruise not found");
+      }
+      if (await cruiseSubgroupPairExists(nextCruiseId, existing.subgroupId)) {
+        throw new HttpError(409, "CONFLICT", "Subgroup already assigned to target cruise", [
+          { field: "cruise_id", issue: "subgroup is already on this cruise" },
+        ]);
+      }
+      cruise = newCruise;
     }
 
     const visibilityState = payload.visibility_state ?? existing.visibilityState;
@@ -232,6 +247,7 @@ cruiseSubgroupsRouter.patch(
 
     const updated = await updateCruiseSubgroup(id, (current) => ({
       ...current,
+      cruiseId: nextCruiseId,
       overrideName: payload.override_name !== undefined ? payload.override_name : current.overrideName,
       overrideDescription:
         payload.override_description !== undefined

@@ -2130,6 +2130,11 @@ function App() {
       }
 
       const existingAssignment = cruiseSubgroupByPair.get(`${subgroupId}:${selectedCruiseIdForSubgroup}`);
+      const assignmentToReassign =
+        !existingAssignment &&
+        cruiseSubgroups.find(
+          (item) => item.subgroup_id === subgroupId && item.cruise_id !== selectedCruiseIdForSubgroup,
+        );
 
       const costLevelOverride = parseNullableNumber(dependencyDraft.cost_level_override);
       const mapX = parseNullableNumber(dependencyDraft.map_x);
@@ -2151,6 +2156,7 @@ function App() {
           method: "PATCH",
           headers: jsonHeaders,
           body: JSON.stringify({
+            cruise_id: selectedCruiseIdForSubgroup,
             override_name: nextName || null,
             override_description: nextDefaultDescription || null,
             detail_image_url: dependencyDraft.detail_image_url.trim() || null,
@@ -2169,13 +2175,12 @@ function App() {
           throw new Error(patchMessage || `Failed to update subgroup page (${patchResponse.status})`);
         }
       } else {
-        const createResponse = await fetch(
-          apiPath(`/admin/cruises/${selectedCruiseIdForSubgroup}/subgroups`),
-          {
-            method: "POST",
+        if (assignmentToReassign) {
+          const patchResponse = await fetch(apiPath(`/admin/cruise-subgroups/${assignmentToReassign.id}`), {
+            method: "PATCH",
             headers: jsonHeaders,
             body: JSON.stringify({
-              subgroup_id: subgroupId,
+              cruise_id: selectedCruiseIdForSubgroup,
               override_name: nextName || null,
               override_description: nextDefaultDescription || null,
               detail_image_url: dependencyDraft.detail_image_url.trim() || null,
@@ -2186,13 +2191,39 @@ function App() {
               map_y: mapY,
               map_scale: mapScale,
             }),
-          },
-        );
+          });
 
-        const createPayload = await createResponse.json();
-        if (!createResponse.ok) {
-          const createMessage = (createPayload as { error?: { message?: string } })?.error?.message;
-          throw new Error(createMessage || `Failed to create subgroup page (${createResponse.status})`);
+          const patchPayload = await patchResponse.json();
+          if (!patchResponse.ok) {
+            const patchMessage = (patchPayload as { error?: { message?: string } })?.error?.message;
+            throw new Error(patchMessage || `Failed to reassign subgroup to cruise (${patchResponse.status})`);
+          }
+        } else {
+          const createResponse = await fetch(
+            apiPath(`/admin/cruises/${selectedCruiseIdForSubgroup}/subgroups`),
+            {
+              method: "POST",
+              headers: jsonHeaders,
+              body: JSON.stringify({
+                subgroup_id: subgroupId,
+                override_name: nextName || null,
+                override_description: nextDefaultDescription || null,
+                detail_image_url: dependencyDraft.detail_image_url.trim() || null,
+                cost_level_override: costLevelOverride,
+                visibility_state: dependencyDraft.visibility_state,
+                dock_visible: dockVisibleForVisibilityState(dependencyDraft.visibility_state),
+                map_x: mapX,
+                map_y: mapY,
+                map_scale: mapScale,
+              }),
+            },
+          );
+
+          const createPayload = await createResponse.json();
+          if (!createResponse.ok) {
+            const createMessage = (createPayload as { error?: { message?: string } })?.error?.message;
+            throw new Error(createMessage || `Failed to create subgroup page (${createResponse.status})`);
+          }
         }
       }
 
@@ -2201,12 +2232,13 @@ function App() {
       const shouldSyncCostLevel = previousDefaultCostLevel !== nextDefaultCostLevel;
 
       if (shouldSyncDescription || shouldSyncName || shouldSyncCostLevel) {
+        const updatedAssignmentId = existingAssignment?.id ?? assignmentToReassign?.id;
         const inheritedAssignments = cruiseSubgroups.filter((item) => {
           if (item.subgroup_id !== subgroupId) {
             return false;
           }
 
-          if (existingAssignment && item.id === existingAssignment.id) {
+          if (updatedAssignmentId && item.id === updatedAssignmentId) {
             return false;
           }
 

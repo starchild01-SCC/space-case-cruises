@@ -44,10 +44,28 @@ app.use(
 );
 
 // CORS: explicitly allow frontend at https://spacecasecamp.com (Hostinger)
-// OPTIONS preflight is handled automatically by the cors package
+// In production, strip local/private origins from env to avoid NAS IPs leaking into Render
+const isLocalOrigin = (origin: string): boolean => {
+  try {
+    const u = new URL(origin);
+    return (
+      u.hostname === "localhost" ||
+      u.hostname === "127.0.0.1" ||
+      u.hostname.startsWith("192.168.") ||
+      u.hostname.startsWith("10.") ||
+      u.hostname.endsWith(".local")
+    );
+  } catch {
+    return false;
+  }
+};
+const envOrigins =
+  env.nodeEnv === "production"
+    ? env.corsAllowedOrigins.filter((o) => !isLocalOrigin(o))
+    : env.corsAllowedOrigins;
 const allowedOrigins = [
   "https://spacecasecamp.com",
-  ...env.corsAllowedOrigins.filter((o) => o !== "https://spacecasecamp.com"),
+  ...envOrigins.filter((o) => o !== "https://spacecasecamp.com"),
 ];
 app.use(
   cors({

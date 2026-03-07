@@ -323,26 +323,45 @@ const resolveMediaUrl = (value: string | null | undefined): string => {
 };
 
 /**
- * Format a cruise date string (YYYY-MM-DD) to a human-readable format
- * @param dateString ISO date string or null
+ * Format a cruise date string (YYYY-MM-DD) to a human-readable format.
+ * Parses as a local calendar date to avoid UTC-offset shifting the day.
+ * @param dateString Date string in YYYY-MM-DD form, or null
  * @returns Formatted date like 'Jul 10, 2026' or 'TBD' if null/invalid
  */
 const formatCruiseDate = (dateString: string | null): string => {
   if (!dateString) return "TBD";
-  
-  try {
-    const date = new Date(dateString);
-    // Check if valid date
-    if (isNaN(date.getTime())) return "TBD";
-    
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric"
-    });
-  } catch {
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString.trim());
+  if (!match) {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "TBD";
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      });
+    } catch {
+      return "TBD";
+    }
+  }
+
+  const [, y, m, d] = match;
+  const year = parseInt(y!, 10);
+  const month = parseInt(m!, 10) - 1;
+  const day = parseInt(d!, 10);
+  if (month < 0 || month > 11 || day < 1 || day > 31) return "TBD";
+
+  const date = new Date(year, month, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
     return "TBD";
   }
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
 };
 
 // Used only in header-sim auth mode during local development, to simulate different users.

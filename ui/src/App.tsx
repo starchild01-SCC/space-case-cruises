@@ -288,9 +288,18 @@ const resolveMediaUrl = (value: string | null | undefined): string => {
         parsed.hostname === "localhost" ||
         parsed.hostname === "127.0.0.1" ||
         parsed.hostname === "::1";
+      const isPrivateHost =
+        parsed.hostname.startsWith("192.168.") ||
+        parsed.hostname.startsWith("10.") ||
+        parsed.hostname.endsWith(".local");
 
-      if (apiOrigin && isLocalhostHost && parsed.pathname.startsWith("/uploads/")) {
-        return `${apiOrigin}${parsed.pathname}${parsed.search}`;
+      if (
+        apiOrigin &&
+        (isLocalhostHost || isPrivateHost) &&
+        (parsed.pathname.startsWith("/uploads/") || parsed.pathname.startsWith("/api/uploads/"))
+      ) {
+        const path = parsed.pathname.startsWith("/api") ? parsed.pathname : `/api${parsed.pathname}`;
+        return `${apiOrigin}${path}${parsed.search}`;
       }
 
       if (
@@ -1120,7 +1129,7 @@ function App() {
 
       const cruiseItems = parseCruises(cruisesPayload);
 
-      // Same API used by Admin and Cruise Map; no-store so map reflects current DB after SQL changes
+      // listCruiseSubgroups (cruise_subgroups bridge) is the single source; Admin and Cruise Map both use this.
       const cruiseSubgroupResults = await Promise.all(
         cruiseItems.map(async (cruise) => {
           const response = await fetch(apiPath(`/cruises/${cruise.id}/subgroups`), {

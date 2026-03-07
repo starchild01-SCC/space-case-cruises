@@ -2,6 +2,12 @@ import type { Request } from "express";
 
 const localhostHosts = new Set(["localhost", "127.0.0.1", "::1"]);
 
+const isPrivateOrLocalHost = (hostname: string): boolean =>
+  localhostHosts.has(hostname) ||
+  hostname.startsWith("192.168.") ||
+  hostname.startsWith("10.") ||
+  hostname.endsWith(".local");
+
 const firstHeaderValue = (value: string | string[] | undefined): string | null => {
   if (!value) {
     return null;
@@ -44,7 +50,9 @@ export const normalizeMediaUrl = (request: Request, value: string | null | undef
 
   try {
     const parsed = new URL(raw);
-    if (!localhostHosts.has(parsed.hostname) || !parsed.pathname.startsWith("/uploads/")) {
+    const isLocalOrPrivate =
+      isPrivateOrLocalHost(parsed.hostname) && parsed.pathname.startsWith("/uploads/");
+    if (!isLocalOrPrivate) {
       return raw;
     }
 
@@ -79,11 +87,11 @@ export const normalizeApiUploadsBridgeUrl = (value: string | null | undefined): 
 
   try {
     const parsed = new URL(raw);
-    if (!parsed.pathname.startsWith("/uploads/")) {
+    if (!parsed.pathname.startsWith("/uploads/") && !parsed.pathname.startsWith("/api/uploads/")) {
       return raw;
     }
-
-    return `/api${parsed.pathname}${parsed.search}`;
+    const path = parsed.pathname.startsWith("/api") ? parsed.pathname : `/api${parsed.pathname}`;
+    return `${path}${parsed.search}`;
   } catch {
     return raw;
   }

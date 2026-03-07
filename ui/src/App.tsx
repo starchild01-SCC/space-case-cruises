@@ -324,11 +324,13 @@ const resolveMediaUrl = (value: string | null | undefined): string => {
 
 /**
  * Format a cruise date string to a human-readable format.
- * Uses only the date part (YYYY-MM-DD); ignores time and timezone so the calendar day
- * is not shifted by UTC conversion.
+ * Uses only the date part (YYYY-MM-DD) and formats from the raw string so the
+ * browser never applies timezone conversion. Shows the exact calendar date from the database.
  * @param dateString ISO date string, YYYY-MM-DD, or null
- * @returns Formatted date like 'Jul 10, 2026' or 'TBD' if null/invalid
+ * @returns Formatted date like 'Aug 24, 2026' or 'TBD' if null/invalid
  */
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 const formatCruiseDate = (dateString: string | null): string => {
   if (!dateString) return "TBD";
 
@@ -339,20 +341,11 @@ const formatCruiseDate = (dateString: string | null): string => {
 
   const [, y, m, d] = match;
   const year = parseInt(y!, 10);
-  const month = parseInt(m!, 10) - 1;
+  const month = parseInt(m!, 10);
   const day = parseInt(d!, 10);
-  if (month < 0 || month > 11 || day < 1 || day > 31) return "TBD";
+  if (month < 1 || month > 12 || day < 1 || day > 31) return "TBD";
 
-  const date = new Date(year, month, day);
-  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
-    return "TBD";
-  }
-
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return `${MONTH_NAMES[month - 1]} ${day}, ${year}`;
 };
 
 // Used only in header-sim auth mode during local development, to simulate different users.
@@ -1083,8 +1076,8 @@ function App() {
     try {
       const [modeRes, cruisesRes, subgroupsRes] = await Promise.all([
         fetch(apiPath("/auth/mode")),
-        fetch(cruisesUrl, { headers: authHeaders }),
-        fetch(apiPath("/subgroups"), { headers: authHeaders }),
+        fetch(cruisesUrl, { headers: authHeaders, cache: "no-store" }),
+        fetch(apiPath("/subgroups"), { headers: authHeaders, cache: "no-store" }),
       ]);
 
       const mode = await modeRes.json();
@@ -1123,10 +1116,12 @@ function App() {
 
       const cruiseItems = parseCruises(cruisesPayload);
 
+      // Same API used by Admin and Cruise Map; no-store so map reflects current DB after SQL changes
       const cruiseSubgroupResults = await Promise.all(
         cruiseItems.map(async (cruise) => {
           const response = await fetch(apiPath(`/cruises/${cruise.id}/subgroups`), {
             headers: authHeaders,
+            cache: "no-store",
           });
           const payload = await response.json();
           return { response, payload };

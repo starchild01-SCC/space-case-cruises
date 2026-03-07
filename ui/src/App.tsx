@@ -323,28 +323,19 @@ const resolveMediaUrl = (value: string | null | undefined): string => {
 };
 
 /**
- * Format a cruise date string (YYYY-MM-DD) to a human-readable format.
- * Parses as a local calendar date to avoid UTC-offset shifting the day.
- * @param dateString Date string in YYYY-MM-DD form, or null
+ * Format a cruise date string to a human-readable format.
+ * Uses only the date part (YYYY-MM-DD); ignores time and timezone so the calendar day
+ * is not shifted by UTC conversion.
+ * @param dateString ISO date string, YYYY-MM-DD, or null
  * @returns Formatted date like 'Jul 10, 2026' or 'TBD' if null/invalid
  */
 const formatCruiseDate = (dateString: string | null): string => {
   if (!dateString) return "TBD";
 
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString.trim());
-  if (!match) {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "TBD";
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric"
-      });
-    } catch {
-      return "TBD";
-    }
-  }
+  const raw = dateString.trim();
+  const dateOnly = raw.includes("T") ? raw.split("T")[0] : raw;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateOnly);
+  if (!match) return "TBD";
 
   const [, y, m, d] = match;
   const year = parseInt(y!, 10);
@@ -360,7 +351,7 @@ const formatCruiseDate = (dateString: string | null): string => {
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
-    year: "numeric"
+    year: "numeric",
   });
 };
 

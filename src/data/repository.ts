@@ -593,6 +593,20 @@ export const findCruiseSubgroupById = async (id: string): Promise<CruiseSubgroup
   return result.rows[0] ? mapCruiseSubgroup(result.rows[0]) : undefined;
 };
 
+export const findCruiseSubgroupBySubgroupId = async (
+  subgroupIdValue: string,
+): Promise<CruiseSubgroup | undefined> => {
+  if (!isDatabaseEnabled || !pool) {
+    return memory.findCruiseSubgroupBySubgroupId(subgroupIdValue);
+  }
+
+  const result = await pool.query(
+    "select * from cruise_subgroups where subgroup_id = $1 limit 1",
+    [subgroupIdValue],
+  );
+  return result.rows[0] ? mapCruiseSubgroup(result.rows[0]) : undefined;
+};
+
 export const cruiseSubgroupPairExists = async (
   cruiseIdValue: string,
   subgroupIdValue: string,

@@ -584,6 +584,9 @@ export const listCruiseSubgroups = (cruiseIdValue: string): CruiseSubgroup[] =>
 export const findCruiseSubgroupById = (id: string): CruiseSubgroup | undefined =>
   cruiseSubgroups.find((assignment) => assignment.id === id);
 
+export const findCruiseSubgroupBySubgroupId = (subgroupIdValue: string): CruiseSubgroup | undefined =>
+  cruiseSubgroups.find((assignment) => assignment.subgroupId === subgroupIdValue);
+
 export const cruiseSubgroupPairExists = (cruiseIdValue: string, subgroupIdValue: string): boolean =>
   cruiseSubgroups.some(
     (assignment) => assignment.cruiseId === cruiseIdValue && assignment.subgroupId === subgroupIdValue,

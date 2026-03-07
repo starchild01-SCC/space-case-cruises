@@ -5,6 +5,7 @@ import {
   cruiseSubgroupPairExists,
   findCruiseById,
   findCruiseSubgroupById,
+  findCruiseSubgroupBySubgroupId,
   findSubgroupById,
   listCruiseSubgroups,
   updateCruiseSubgroup,
@@ -188,6 +189,24 @@ cruiseSubgroupsRouter.post(
     const mapX = payload.map_x ?? null;
     const mapY = payload.map_y ?? null;
     assertCruisePlacementAllowed(cruise.forceAllSubgroupsToDock, visibilityState, mapX, mapY);
+
+    const existingOnOtherCruise = await findCruiseSubgroupBySubgroupId(payload.subgroup_id);
+    if (existingOnOtherCruise && existingOnOtherCruise.cruiseId !== cruiseId) {
+      const updated = await updateCruiseSubgroup(existingOnOtherCruise.id, (current) => ({
+        ...current,
+        cruiseId,
+        overrideName: payload.override_name ?? null,
+        overrideDescription: payload.override_description ?? null,
+        detailImageUrl: payload.detail_image_url ?? null,
+        costLevelOverride: payload.cost_level_override ?? null,
+        visibilityState,
+        dockVisible: payload.dock_visible ?? visibilityState !== "active",
+        mapX,
+        mapY,
+        mapScale: payload.map_scale ?? 1,
+      }));
+      return response.json(await serializeAssignment(request, updated));
+    }
 
     const created = await createCruiseSubgroup({
       cruiseId,

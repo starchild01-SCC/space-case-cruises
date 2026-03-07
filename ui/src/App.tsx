@@ -1088,7 +1088,7 @@ function App() {
 
     try {
       const [modeRes, cruisesRes, subgroupsRes] = await Promise.all([
-        fetch(apiPath("/auth/mode")),
+        fetch(apiPath("/auth/mode"), { cache: "no-store" }),
         fetch(cruisesUrl, { headers: authHeaders, cache: "no-store" }),
         fetch(apiPath("/subgroups"), { headers: authHeaders, cache: "no-store" }),
       ]);
@@ -1116,9 +1116,9 @@ function App() {
 
       if (authCandidate) {
         const [sessionRes, profileRes, cadreRes] = await Promise.all([
-          fetch(apiPath("/auth/session"), { headers: authHeaders }),
-          fetch(apiPath("/profile"), { headers: authHeaders }),
-          fetch(apiPath("/cadre"), { headers: authHeaders }),
+          fetch(apiPath("/auth/session"), { headers: authHeaders, cache: "no-store" }),
+          fetch(apiPath("/profile"), { headers: authHeaders, cache: "no-store" }),
+          fetch(apiPath("/cadre"), { headers: authHeaders, cache: "no-store" }),
         ]);
 
         // If auth fails, we still want browsing to work; just treat the user as unregistered.
@@ -1254,6 +1254,7 @@ function App() {
     try {
       const response = await fetch(apiPath(`/cadets/${userId}`), {
         headers: authHeaders,
+        cache: "no-store",
       });
       const payload = await response.json();
 
@@ -1287,6 +1288,7 @@ function App() {
       ),
       {
         headers: authHeaders,
+        cache: "no-store",
       },
     );
     const payload = await response.json();
